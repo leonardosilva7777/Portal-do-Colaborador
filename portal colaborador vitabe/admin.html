@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Painel Admin — Portal do Colaborador</title>
+  <link rel="stylesheet" href="portal.css" />
+  <style>
+    /* ── Stats cards ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 4px;
+    }
+    .stat-card {
+      background: var(--cor-branco);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: var(--shadow-md);
+    }
+    .stat-card .stat-label {
+      font-family: var(--fonte-secundaria);
+      font-size: 11px; text-transform: uppercase;
+      letter-spacing: 0.06em; color: var(--cor-texto-secundario);
+      margin-bottom: 8px;
+    }
+    .stat-card .stat-value {
+      font-family: var(--fonte-primaria);
+      font-size: 36px; font-weight: 300;
+      color: var(--cor-texto-principal);
+      line-height: 1;
+    }
+    .stat-card .stat-value.accent { color: var(--color-warm-intention); }
+
+    /* ── Toolbar ── */
+    .table-toolbar {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      gap: 12px; flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .search-input {
+      font-family: var(--fonte-apoio);
+      padding: 9px 14px; border: 1.5px solid var(--cor-borda);
+      border-radius: var(--radius-pill); font-size: 14px;
+      color: var(--cor-texto-principal); background: var(--cor-branco);
+      width: 240px; transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .search-input:focus {
+      outline: none; border-color: var(--color-warm-intention);
+      box-shadow: 0 0 0 3px rgba(234,83,57,0.1);
+    }
+    .filter-select {
+      font-family: var(--fonte-apoio); padding: 9px 14px;
+      border: 1.5px solid var(--cor-borda); border-radius: var(--radius-pill);
+      font-size: 14px; color: var(--cor-texto-principal);
+      background: var(--cor-branco); cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .filter-select:focus { outline: none; border-color: var(--color-warm-intention); }
+
+    /* ── Tabela ── */
+    .users-table-wrap {
+      overflow-x: auto;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+    }
+    table {
+      width: 100%; border-collapse: collapse;
+      background: var(--cor-branco);
+      font-family: var(--fonte-apoio); font-size: 14px;
+    }
+    thead th {
+      font-family: var(--fonte-secundaria); font-size: 11px;
+      text-transform: uppercase; letter-spacing: 0.07em;
+      color: var(--cor-texto-secundario);
+      padding: 14px 16px; text-align: left;
+      border-bottom: 2px solid var(--cor-borda);
+      background: var(--color-white-breathe);
+      white-space: nowrap; cursor: pointer; user-select: none;
+    }
+    thead th:hover { color: var(--color-warm-intention); }
+    thead th:first-child { border-radius: var(--radius-lg) 0 0 0; }
+    thead th:last-child  { border-radius: 0 var(--radius-lg) 0 0; }
+    tbody tr {
+      border-bottom: 1px solid var(--cor-borda);
+      transition: background 0.15s;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--color-white-breathe); }
+    td { padding: 12px 16px; color: var(--cor-texto-principal); vertical-align: middle; }
+
+    .user-cell { display: flex; align-items: center; gap: 12px; }
+    .mini-avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: var(--color-warm-intention);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--fonte-secundaria); font-size: 13px;
+      font-weight: 400; text-transform: uppercase;
+      color: var(--color-text-inverse); flex-shrink: 0;
+    }
+    .mini-avatar.admin-avatar { background: var(--color-bold-grafitti); }
+    .user-cell-info .user-name { font-weight: 600; color: var(--cor-texto-principal); }
+    .user-cell-info .user-email { font-size: 12px; color: var(--cor-texto-secundario); }
+
+    .role-badge {
+      font-family: var(--fonte-secundaria); font-size: 11px;
+      text-transform: uppercase; letter-spacing: 0.05em;
+      padding: 4px 12px; border-radius: var(--radius-pill);
+      display: inline-block; white-space: nowrap;
+    }
+    .role-badge.admin { background: var(--color-bold-grafitti); color: var(--color-text-inverse); }
+    .role-badge.user  { background: var(--color-white-breathe); color: var(--cor-texto-secundario); border: 1px solid var(--cor-borda); }
+
+    .status-badge {
+      font-family: var(--fonte-secundaria); font-size: 11px;
+      text-transform: uppercase; letter-spacing: 0.05em;
+      padding: 4px 12px; border-radius: var(--radius-pill);
+      display: inline-block;
+    }
+    .status-badge.ativo   { background: rgba(195,215,44,0.2); color: #4a5a00; }
+    .status-badge.inativo { background: rgba(220,53,69,0.1);  color: #a51528; }
+
+    .data-text { font-size: 12px; color: var(--cor-texto-claro); white-space: nowrap; }
+
+    /* Ações */
+    .actions-cell { display: flex; gap: 6px; flex-wrap: nowrap; }
+    .btn-action {
+      font-family: var(--fonte-secundaria); font-size: 11px;
+      text-transform: uppercase; letter-spacing: 0.05em;
+      padding: 6px 14px; border-radius: var(--radius-pill);
+      cursor: pointer; border: none; transition: opacity 0.2s, transform 0.15s;
+      white-space: nowrap;
+    }
+    .btn-action:hover { opacity: 0.85; transform: translateY(-1px); }
+    .btn-action:active { transform: translateY(0); }
+    .btn-toggle-admin { background: var(--color-bold-grafitti); color: var(--color-text-inverse); }
+    .btn-toggle-admin.remover { background: var(--color-white-breathe); color: var(--color-bold-grafitti); border: 1px solid var(--cor-borda); }
+    .btn-toggle-status { background: rgba(220,53,69,0.1); color: #a51528; }
+    .btn-toggle-status.reativar { background: rgba(195,215,44,0.2); color: #4a5a00; }
+    .btn-excluir { background: rgba(220,53,69,0.12); color: #DC3545; border: 1px solid rgba(220,53,69,0.3); }
+
+    /* Linha vazia */
+    .empty-row td {
+      text-align: center; padding: 48px; color: var(--cor-texto-claro);
+      font-family: var(--fonte-apoio); font-size: 14px;
+    }
+
+    /* Toast de confirmação */
+    .toast {
+      position: fixed; bottom: 28px; right: 28px;
+      background: var(--color-bold-grafitti); color: var(--color-text-inverse);
+      font-family: var(--fonte-apoio); font-size: 14px;
+      padding: 14px 20px; border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg); z-index: 999;
+      opacity: 0; transform: translateY(8px);
+      transition: opacity 0.25s, transform 0.25s;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 700px) {
+      .search-input { width: 100%; }
+      td:nth-child(3), th:nth-child(3),
+      td:nth-child(4), th:nth-child(4) { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="user-bar" role="banner">
+    <div class="user-dropdown">
+      <div class="user-dropdown-trigger user-info">
+        <span class="user-avatar" id="userAvatar">A</span>
+        <span class="user-name" id="userName">Admin</span>
+      </div>
+      <div class="user-dropdown-menu">
+        <a href="meus-dados.html">Meus dados</a>
+        <a href="admin.html" style="color:var(--color-warm-intention);font-weight:600">Painel Admin</a>
+      </div>
+    </div>
+    <button type="button" class="btn-logout" onclick="logout()">Sair</button>
+  </div>
+
+  <div class="app-layout">
+    <aside class="sidebar" role="navigation" aria-label="Navegação principal">
+      <div class="sidebar-logo">
+        <a href="index.html" aria-label="Renova Be — Início">
+          <img src="Imagens%20para%20Usar/logo.png" alt="Renova Be" class="brand-logo"
+            onerror="this.style.display='none'; this.nextElementSibling.classList.add('visible');">
+          <span class="logo-fallback" aria-hidden="true">RENOVA BE</span>
+        </a>
+      </div>
+      <ul class="sidebar-nav">
+        <li><a href="index.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></span> Início</a></li>
+        <li><a href="comunicados.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z"/></svg></span> Mural de Comunicados</a></li>
+        <li><a href="empresa.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg></span> Empresa</a></li>
+        <li><a href="beneficios.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.11-.31.18-.65.18-1 0-1.66-1.34-3-3-3-1.05 0-1.96.54-2.5 1.35l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2z"/></svg></span> Benefícios</a></li>
+        <li><a href="politicas.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg></span> Políticas</a></li>
+        <li><a href="ti-suporte.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 1c-4.97 0-9 4.03-9 9v7c0 1.66 1.34 3 3 3h3v-8H5v-2c0-3.87 3.13-7 7-7s7 3.13 7 7v2h-4v8h3c1.66 0 3-1.34 3-3v-7c0-4.97-4.03-9-9-9z"/></svg></span> TI e Suporte</a></li>
+        <li><a href="calendario.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/></svg></span> Calendário</a></li>
+        <li><a href="fale-gg.html" ><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z"/></svg></span> Fale com o G&amp;G</a></li>
+        <li class="nav-divider"></li>
+        <li><a href="admin.html" class="active"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg></span> Painel Admin</a></li>
+      </ul>
+    </aside>
+
+    <main class="main-wrap">
+      <div class="container" style="max-width:1100px">
+        <div class="main-content">
+
+          <!-- Cabeçalho -->
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+            <div>
+              <h1 class="page-title">Painel Admin</h1>
+              <p class="welcome-subtitle">Gerencie os usuários com acesso ao portal.</p>
+            </div>
+            <button class="btn" style="margin-top:0;display:flex;align-items:center;gap:6px" onclick="abrirModalCriarUsuario()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+              Criar usuário
+            </button>
+          </div>
+
+          <!-- Stats -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-label">Total cadastrados</div>
+              <div class="stat-value" id="statTotal">0</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Ativos</div>
+              <div class="stat-value accent" id="statAtivos">0</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Admins</div>
+              <div class="stat-value" id="statAdmins">0</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">E-mails licenciados</div>
+              <div class="stat-value" id="statLicenciados">0</div>
+            </div>
+          </div>
+
+          <!-- Tabela de usuários -->
+          <section class="card" style="padding:0;overflow:hidden" aria-labelledby="usuarios-titulo">
+
+            <div style="padding:20px 24px 0">
+              <h2 id="usuarios-titulo" style="margin-bottom:0">Usuários cadastrados</h2>
+            </div>
+
+            <div style="padding:16px 24px">
+              <div class="table-toolbar">
+                <input
+                  type="search" id="searchInput" class="search-input"
+                  placeholder="Buscar por nome ou e-mail…"
+                  aria-label="Buscar usuário"
+                />
+                <select id="filterSelect" class="filter-select" aria-label="Filtrar por papel">
+                  <option value="todos">Todos</option>
+                  <option value="admin">Somente admins</option>
+                  <option value="user">Somente usuários</option>
+                  <option value="inativo">Inativos</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="users-table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th data-col="nome">Usuário</th>
+                    <th data-col="cargo">Cargo</th>
+                    <th data-col="role">Papel</th>
+                    <th data-col="criadoEm">Cadastro</th>
+                    <th data-col="ultimoLogin">Último login</th>
+                    <th data-col="ativo">Status</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                  <tr class="empty-row">
+                    <td colspan="7">Nenhum usuário cadastrado ainda.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+          </section>
+
+        </div>
+      </div>
+    </main>
+  </div>
+
+  
+
+  <div class="toast" id="toast"></div>
+
+  <script src="db.js"></script>
+  <script>
+    // Só admin pode acessar
+    dbVerificarAdmin();
+
+    // Preenche header
+    (function () {
+      var sessao = dbGetSessao();
+      if (!sessao) return;
+      var elNome   = document.getElementById('userName');
+      var elAvatar = document.getElementById('userAvatar');
+      if (elNome)   elNome.textContent   = sessao.nome;
+      if (elAvatar) elAvatar.textContent = sessao.nome.charAt(0).toUpperCase();
+    })();
+
+    function logout() {
+      dbEncerrarSessao();
+      window.location.href = 'login.html';
+    }
+
+    // ── Estado local ──────────────────────────────────────────────────────────
+    var sessaoAtual = dbGetSessao();
+    var sortCol  = 'criadoEm';
+    var sortAsc  = false;
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+    function formatarData(iso) {
+      if (!iso) return '—';
+      var d = new Date(iso);
+      return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function mostrarToast(msg) {
+      var t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(function() { t.classList.remove('show'); }, 2800);
+    }
+
+    // ── Render ────────────────────────────────────────────────────────────────
+    function render() {
+      var todos    = dbGetUsuarios();
+      var busca    = document.getElementById('searchInput').value.trim().toLowerCase();
+      var filtro   = document.getElementById('filterSelect').value;
+
+      // Stats
+      document.getElementById('statTotal').textContent     = todos.length;
+      document.getElementById('statAtivos').textContent    = todos.filter(function(u) { return u.ativo; }).length;
+      document.getElementById('statAdmins').textContent    = todos.filter(function(u) { return u.role === 'admin'; }).length;
+      document.getElementById('statLicenciados').textContent = Object.keys(EMAILS_LICENCIADOS).length;
+
+      // Filtro
+      var lista = todos.filter(function(u) {
+        var matchBusca = !busca ||
+          u.nome.toLowerCase().includes(busca) ||
+          u.email.toLowerCase().includes(busca);
+
+        var matchFiltro = filtro === 'todos' ||
+          (filtro === 'admin'   && u.role === 'admin') ||
+          (filtro === 'user'    && u.role === 'user'  && u.ativo) ||
+          (filtro === 'inativo' && !u.ativo);
+
+        return matchBusca && matchFiltro;
+      });
+
+      // Ordenação
+      lista.sort(function(a, b) {
+        var va = a[sortCol] || '';
+        var vb = b[sortCol] || '';
+        if (va < vb) return sortAsc ?  -1 : 1;
+        if (va > vb) return sortAsc ?   1 : -1;
+        return 0;
+      });
+
+      var tbody = document.getElementById('usersTableBody');
+      if (lista.length === 0) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Nenhum usuário encontrado.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = lista.map(function(u) {
+        var isMe      = u.id === sessaoAtual.id;
+        var isAdmin   = u.role === 'admin';
+        var avatarClass = isAdmin ? 'mini-avatar admin-avatar' : 'mini-avatar';
+        var inicial   = u.nome.charAt(0).toUpperCase();
+
+        var btnAdmin = isMe
+          ? '<span style="font-size:11px;color:var(--cor-texto-claro);font-family:var(--fonte-secundaria)">você</span>'
+          : isAdmin
+            ? '<button class="btn-action btn-toggle-admin remover" onclick="toggleAdmin(\'' + u.id + '\')">Remover admin</button>'
+            : '<button class="btn-action btn-toggle-admin" onclick="toggleAdmin(\'' + u.id + '\')">Tornar admin</button>';
+
+        var btnStatus = isMe ? '' : u.ativo
+          ? '<button class="btn-action btn-toggle-status" onclick="toggleStatus(\'' + u.id + '\', false)">Desativar</button>'
+          : '<button class="btn-action btn-toggle-status reativar" onclick="toggleStatus(\'' + u.id + '\', true)">Reativar</button>';
+
+        var btnExcluir = isMe ? '' : '<button class="btn-action btn-excluir" onclick="excluirUsuario(\'' + u.id + '\', \'' + u.nome.replace(/'/g,'') + '\')">Excluir</button>';
+
+        var cargoText = u.cargo ? escHtml(u.cargo) : '<span style="color:var(--cor-texto-claro);font-style:italic">—</span>';
+        var btnEditProf = '<button class="btn-action" style="background:rgba(110,170,191,0.15);color:#1f6278;border:1px solid rgba(110,170,191,0.3)" onclick="abrirModalProfissional(\'' + u.id + '\')">Editar cargo</button>';
+        return '<tr>' +
+          '<td>' +
+            '<div class="user-cell">' +
+              '<div class="' + avatarClass + '">' + inicial + '</div>' +
+              '<div class="user-cell-info">' +
+                '<div class="user-name" style="cursor:pointer;color:var(--color-warm-intention)" onclick="abrirModalProfissional(\'' + u.id + '\')" title="Editar dados profissionais">' + escHtml(u.nome) + '</div>' +
+                '<div class="user-email">' + escHtml(u.email) + '</div>' +
+              '</div>' +
+            '</div>' +
+          '</td>' +
+          '<td><span class="data-text">' + cargoText + (u.departamento ? '<br><small style="color:var(--cor-texto-claro)">' + escHtml(u.departamento) + '</small>' : '') + '</span></td>' +
+          '<td><span class="role-badge ' + u.role + '">' + (isAdmin ? 'Admin' : 'Usuário') + '</span></td>' +
+          '<td><span class="data-text">' + formatarData(u.criadoEm) + '</span></td>' +
+          '<td><span class="data-text">' + formatarData(u.ultimoLogin) + '</span></td>' +
+          '<td><span class="status-badge ' + (u.ativo ? 'ativo' : 'inativo') + '">' + (u.ativo ? 'Ativo' : 'Inativo') + '</span></td>' +
+          '<td><div class="actions-cell">' + btnAdmin + btnStatus + btnEditProf + btnExcluir + '</div></td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    function escHtml(str) {
+      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // ── Ações ─────────────────────────────────────────────────────────────────
+    function toggleAdmin(userId) {
+      var usuarios = dbGetUsuarios();
+      var u = usuarios.find(function(x) { return x.id === userId; });
+      if (!u) return;
+      var novoRole = u.role === 'admin' ? 'user' : 'admin';
+      dbAtualizarRole(userId, novoRole);
+      mostrarToast(u.nome + ' agora é ' + (novoRole === 'admin' ? 'admin' : 'usuário comum') + '.');
+      render();
+    }
+
+    function toggleStatus(userId, ativar) {
+      var usuarios = dbGetUsuarios();
+      var u = usuarios.find(function(x) { return x.id === userId; });
+      if (!u) return;
+      if (ativar) {
+        dbReativarUsuario(userId);
+        mostrarToast(u.nome + ' foi reativado.');
+      } else {
+        dbDesativarUsuario(userId);
+        mostrarToast(u.nome + ' foi desativado.');
+      }
+      render();
+    }
+
+    function excluirUsuario(userId, nome) {
+      if (!confirm('Excluir permanentemente o usuário "' + nome + '"?\n\nEsta ação não pode ser desfeita.')) return;
+      dbExcluirUsuario(userId);
+      mostrarToast(nome + ' foi excluído permanentemente.');
+      render();
+    }
+
+    // ── Eventos ───────────────────────────────────────────────────────────────
+    document.getElementById('searchInput').addEventListener('input', render);
+    document.getElementById('filterSelect').addEventListener('change', render);
+
+    document.querySelectorAll('thead th[data-col]').forEach(function(th) {
+      th.addEventListener('click', function() {
+        var col = this.dataset.col;
+        if (sortCol === col) { sortAsc = !sortAsc; }
+        else { sortCol = col; sortAsc = true; }
+        render();
+      });
+    });
+
+    function abrirModalProfissional(userId) {
+      var usuarios = dbGetUsuarios();
+      var u = usuarios.find(function(x) { return x.id === userId; });
+      if (!u) return;
+      document.getElementById('profUserId').value = userId;
+      document.getElementById('profCargo').value = u.cargo || '';
+      document.getElementById('profDepto').value = u.departamento || '';
+      document.getElementById('profAdmissao').value = u.dataAdmissao || '';
+      document.getElementById('profRegime').value = u.regimeTrabalho || '';
+      document.getElementById('modalProfissional').style.display = 'flex';
+    }
+
+    function fecharModalProfissional() {
+      document.getElementById('modalProfissional').style.display = 'none';
+    }
+
+    function salvarProfissional() {
+      var userId = document.getElementById('profUserId').value;
+      dbAtualizarDadosProfissionais(userId, {
+        cargo:         document.getElementById('profCargo').value.trim(),
+        departamento:  document.getElementById('profDepto').value.trim(),
+        dataAdmissao:  document.getElementById('profAdmissao').value,
+        regimeTrabalho:document.getElementById('profRegime').value
+      });
+      fecharModalProfissional();
+      mostrarToast('Dados profissionais atualizados.');
+      render();
+    }
+
+    // ── Criar usuário ──────────────────────────────────────────────────────
+    function abrirModalCriarUsuario() {
+      document.getElementById('novoNome').value = '';
+      document.getElementById('novoEmail').value = '';
+      document.getElementById('novoSenha').value = '';
+      document.getElementById('modalCriarUsuario').style.display = 'flex';
+    }
+    function fecharModalCriarUsuario() {
+      document.getElementById('modalCriarUsuario').style.display = 'none';
+    }
+    function criarNovoUsuario() {
+      var nome  = document.getElementById('novoNome').value.trim();
+      var email = document.getElementById('novoEmail').value.trim();
+      var senha = document.getElementById('novoSenha').value;
+      if (!nome)  { alert('Informe o nome.'); return; }
+      if (!email) { alert('Informe o e-mail.'); return; }
+      if (!senha || senha.length < 6) { alert('A senha deve ter no mínimo 6 caracteres.'); return; }
+      var res = dbAdminCriarUsuario(nome, email, senha);
+      if (res === 'EMAIL_JA_CADASTRADO') { alert('Este e-mail já está cadastrado.'); return; }
+      if (res === 'SENHA_FRACA') { alert('Senha muito fraca (mín. 6 caracteres).'); return; }
+      fecharModalCriarUsuario();
+      mostrarToast('Usuário "' + nome + '" criado com sucesso.');
+      render();
+    }
+
+    // Render inicial
+    render();
+  </script>
+
+  <!-- Modal criar usuário -->
+  <div id="modalCriarUsuario" style="display:none;position:fixed;inset:0;background:rgba(43,36,34,.5);z-index:1000;align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)fecharModalCriarUsuario()">
+    <div style="background:#fff;border-radius:16px;padding:28px;max-width:480px;width:100%;box-shadow:0 12px 40px rgba(43,36,34,.2)" onclick="event.stopPropagation()">
+      <h3 style="font-family:var(--fonte-primaria);font-size:20px;font-weight:400;text-transform:uppercase;letter-spacing:.04em;margin:0 0 20px;color:var(--cor-texto-principal)">Criar novo usuário</h3>
+      <div class="form-group"><label for="novoNome">Nome completo</label><input type="text" id="novoNome" placeholder="Ex: Maria Silva" /></div>
+      <div class="form-group"><label for="novoEmail">E-mail</label><input type="email" id="novoEmail" placeholder="email@empresa.com.br" /></div>
+      <div class="form-group"><label for="novoSenha">Senha</label><input type="password" id="novoSenha" placeholder="Mínimo 6 caracteres" /></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px">
+        <button type="button" class="rb-btn-cancel" onclick="fecharModalCriarUsuario()">Cancelar</button>
+        <button type="button" class="btn" style="margin-top:0" onclick="criarNovoUsuario()">Criar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal dados profissionais -->
+  <div id="modalProfissional" style="display:none;position:fixed;inset:0;background:rgba(43,36,34,.5);z-index:1000;align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)fecharModalProfissional()">
+    <div style="background:#fff;border-radius:16px;padding:28px;max-width:480px;width:100%;box-shadow:0 12px 40px rgba(43,36,34,.2)" onclick="event.stopPropagation()">
+      <h3 style="font-family:var(--fonte-primaria);font-size:20px;font-weight:400;text-transform:uppercase;letter-spacing:.04em;margin:0 0 20px;color:var(--cor-texto-principal)">Dados Profissionais</h3>
+      <input type="hidden" id="profUserId" />
+      <div class="form-group"><label for="profCargo">Cargo</label><input type="text" id="profCargo" placeholder="Ex: Analista de Marketing" /></div>
+      <div class="form-group"><label for="profDepto">Departamento</label><input type="text" id="profDepto" placeholder="Ex: Marketing" /></div>
+      <div class="form-group"><label for="profAdmissao">Data de admissão</label><input type="date" id="profAdmissao" /></div>
+      <div class="form-group"><label for="profRegime">Regime de trabalho</label>
+        <select id="profRegime">
+          <option value="">Selecionar...</option>
+          <option value="CLT">CLT</option>
+          <option value="PJ">PJ</option>
+          <option value="Estágio">Estágio</option>
+          <option value="Freelancer">Freelancer</option>
+          <option value="Temporário">Temporário</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px">
+        <button type="button" class="rb-btn-cancel" onclick="fecharModalProfissional()">Cancelar</button>
+        <button type="button" class="btn" style="margin-top:0" onclick="salvarProfissional()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

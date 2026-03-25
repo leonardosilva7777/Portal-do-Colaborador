@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+  <meta http-equiv="Pragma" content="no-cache"/>
+  <meta http-equiv="Expires" content="0"/>
+  <title>Entrar — Portal do Colaborador Renova Be</title>
+
+  <style>
+    @font-face {
+      font-family: 'PP Museum';
+      src: url('fonts/PPMuseum-Light.woff2') format('woff2'),
+           url('fonts/PPMuseum-Light.woff') format('woff');
+      font-weight: 300; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: 'PP Museum';
+      src: url('fonts/PPMuseum-Regular.woff2') format('woff2'),
+           url('fonts/PPMuseum-Regular.woff') format('woff');
+      font-weight: 400; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: 'Ayuthaya';
+      src: url('fonts/Ayuthaya-Regular.woff2') format('woff2'),
+           url('fonts/Ayuthaya-Regular.woff') format('woff');
+      font-weight: 400; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: 'Zalando Sans';
+      font-style: normal; font-display: swap; font-weight: 200 900;
+      src: url('https://cdn.jsdelivr.net/fontsource/fonts/zalando-sans:vf@latest/latin-wght-normal.woff2') format('woff2-variations');
+    }
+
+    :root {
+      --warm:   #EA5339;
+      --warm-d: #c94628;
+      --cream:  #EEE5DC;
+      --dark:   #2B2422;
+      --white:  #FFFFFF;
+      --border: #D9CCC0;
+      --muted:  #666666;
+      --faint:  #999999;
+      --err:    #DC3545;
+      --err-bg: #F8D7DA;
+      --ok-bg:  rgba(195,215,44,0.2);
+      --ok-border: #8fa800;
+      --ok-text:   #4a5a00;
+      --font-h: 'PP Museum', 'Georgia', serif;
+      --font-s: 'Ayuthaya', 'Helvetica Neue', sans-serif;
+      --font-b: 'Zalando Sans', 'Inter', sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-b);
+      background: var(--cream);
+      color: var(--dark);
+      min-height: 100vh;
+      display: flex;
+      align-items: stretch;
+    }
+
+    /* Painel esquerdo — marca */
+    .brand-panel {
+      flex: 1;
+      background: var(--warm);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 48px;
+      position: relative;
+      overflow: hidden;
+    }
+    .brand-panel::before, .brand-panel::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      border: 2px solid rgba(238,229,220,0.18);
+    }
+    .brand-panel::before { width: 420px; height: 420px; top: -80px; right: -120px; }
+    .brand-panel::after  { width: 280px; height: 280px; bottom: -60px; left: -60px; }
+
+    .brand-logo { max-width: 180px; max-height: 72px; object-fit: contain; display: block; margin-bottom: 32px; }
+    .brand-logo-fallback {
+      font-family: var(--font-h);
+      font-size: 32px; font-weight: 400; text-transform: uppercase;
+      letter-spacing: 0.04em; color: var(--cream); margin-bottom: 32px; display: none;
+    }
+    .brand-tagline {
+      font-family: var(--font-h);
+      font-size: 28px; font-weight: 300; text-transform: uppercase;
+      letter-spacing: 0.04em; color: var(--cream);
+      text-align: center; line-height: 1.25; margin-bottom: 16px;
+      position: relative; z-index: 1;
+    }
+    .brand-sub {
+      font-family: var(--font-b);
+      font-size: 14px; color: rgba(238,229,220,0.75);
+      text-align: center; max-width: 280px; line-height: 1.5;
+      position: relative; z-index: 1;
+    }
+
+    /* Painel direito — formulário */
+    .form-panel {
+      width: 440px; min-width: 320px;
+      background: var(--white);
+      display: flex; flex-direction: column; justify-content: center;
+      padding: 52px 48px;
+    }
+    .form-title {
+      font-family: var(--font-h);
+      font-size: 24px; font-weight: 400; text-transform: uppercase;
+      letter-spacing: 0.04em; color: var(--dark);
+      margin-bottom: 4px;
+    }
+    .form-subtitle {
+      font-family: var(--font-b);
+      font-size: 14px; color: var(--muted); margin-bottom: 32px; line-height: 1.4;
+    }
+
+    .form-group { margin-bottom: 18px; }
+    .form-group label {
+      font-family: var(--font-s);
+      display: block; margin-bottom: 7px; font-size: 12px; font-weight: 400;
+      color: var(--dark); text-transform: uppercase; letter-spacing: 0.07em;
+    }
+    .form-group input {
+      font-family: var(--font-b);
+      width: 100%; padding: 13px 16px;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      font-size: 15px; color: var(--dark); background: var(--white);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--warm);
+      box-shadow: 0 0 0 3px rgba(234,83,57,0.12);
+    }
+    .form-group input::placeholder { color: var(--faint); }
+
+    .alert {
+      font-family: var(--font-b); font-size: 14px;
+      padding: 12px 16px; border-radius: 8px; margin-bottom: 18px; display: none;
+    }
+    .alert.show { display: block; animation: shake 0.4s ease; }
+    .alert-error  { background: var(--err-bg); color: var(--err); border: 1px solid var(--err); }
+    .alert-success{ background: var(--ok-bg); color: var(--ok-text); border: 1px solid var(--ok-border); }
+
+    .btn-submit {
+      font-family: var(--font-s);
+      width: 100%; padding: 14px; background: var(--warm);
+      color: var(--cream); border: none; border-radius: 999px;
+      font-size: 14px; font-weight: 400; text-transform: uppercase;
+      letter-spacing: 0.07em; cursor: pointer;
+      transition: opacity 0.2s ease, transform 0.15s ease;
+      margin-top: 4px;
+    }
+    .btn-submit:hover  { opacity: 0.88; transform: translateY(-1px); }
+    .btn-submit:active { transform: translateY(0); }
+
+    .form-link {
+      text-align: center; margin-top: 22px;
+      font-family: var(--font-b); font-size: 13px; color: var(--muted);
+    }
+    .form-link a {
+      color: var(--warm); text-decoration: none; font-weight: 600;
+    }
+    .form-link a:hover { text-decoration: underline; }
+
+    .form-footer {
+      font-family: var(--font-b); margin-top: 32px;
+      font-size: 12px; color: var(--faint); text-align: center;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25%  { transform: translateX(-8px); }
+      75%  { transform: translateX(8px); }
+    }
+
+    @media (max-width: 720px) {
+      body { flex-direction: column; }
+      .brand-panel { flex: none; padding: 32px 24px; min-height: 200px; }
+      .brand-tagline { font-size: 20px; }
+      .form-panel { width: 100%; padding: 36px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="brand-panel" aria-hidden="true">
+    <img
+      src="Imagens%20para%20Usar/logo.png"
+      alt="Renova Be"
+      class="brand-logo"
+      onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+    />
+    <span class="brand-logo-fallback">RENOVA BE</span>
+    <p class="brand-tagline">Ciclos que renovam.<br/>Conquistas que inspiram.</p>
+    <p class="brand-sub">Seu espaço para crescer, cuidar e evoluir com a gente.</p>
+  </div>
+
+  <div class="form-panel">
+    <h1 class="form-title">Portal do<br/>Colaborador</h1>
+    <p class="form-subtitle">Faça login para acessar seu espaço.</p>
+
+    <div id="alertMsg" class="alert alert-error" role="alert"></div>
+
+    <form id="loginForm" novalidate>
+      <div class="form-group">
+        <label for="email">E-mail corporativo</label>
+        <input
+          type="email" id="email" name="email"
+          placeholder="seunome@vitabe.com.br"
+          required autocomplete="email"
+        />
+      </div>
+      <div class="form-group">
+        <label for="senha">Senha</label>
+        <input
+          type="password" id="senha" name="senha"
+          placeholder="Sua senha"
+          required autocomplete="current-password"
+        />
+      </div>
+      <button type="submit" class="btn-submit">Entrar</button>
+    </form>
+
+    <p class="form-link">
+      Primeiro acesso? <a href="cadastro.html">Criar conta</a>
+    </p>
+
+    <p class="form-footer">© 2026 Renova Be — Todos os direitos reservados</p>
+  </div>
+
+  <script src="db.js"></script>
+  <script>
+    // Se já está logado, redireciona
+    if (dbGetSessao()) {
+      window.location.href = 'index.html';
+    }
+
+    var form     = document.getElementById('loginForm');
+    var alertMsg = document.getElementById('alertMsg');
+
+    function mostrarErro(msg) {
+      alertMsg.textContent = msg;
+      alertMsg.className = 'alert alert-error show';
+    }
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      alertMsg.className = 'alert alert-error';
+
+      var email = document.getElementById('email').value.trim();
+      var senha = document.getElementById('senha').value;
+
+      if (!email || !senha) {
+        mostrarErro('Preencha e-mail e senha.');
+        return;
+      }
+
+      var resultado = dbLogin(email, senha);
+
+      if (resultado === 'USUARIO_NAO_ENCONTRADO') {
+        mostrarErro('E-mail não encontrado. Verifique ou crie sua conta.');
+        return;
+      }
+      if (resultado === 'USUARIO_INATIVO') {
+        mostrarErro('Sua conta está inativa. Entre em contato com o G&G.');
+        return;
+      }
+      if (resultado === 'SENHA_INCORRETA') {
+        mostrarErro('Senha incorreta. Tente novamente.');
+        document.getElementById('senha').value = '';
+        document.getElementById('senha').focus();
+        return;
+      }
+
+      // Login bem-sucedido
+      dbIniciarSessao(resultado);
+      window.location.href = 'index.html';
+    });
+
+    document.getElementById('email').focus();
+  </script>
+
+</body>
+</html>

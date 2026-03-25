@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Criar conta — Portal do Colaborador Renova Be</title>
+
+  <style>
+    @font-face {
+      font-family: 'PP Museum';
+      src: url('fonts/PPMuseum-Light.woff2') format('woff2'),
+           url('fonts/PPMuseum-Light.woff') format('woff');
+      font-weight: 300; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: 'PP Museum';
+      src: url('fonts/PPMuseum-Regular.woff2') format('woff2'),
+           url('fonts/PPMuseum-Regular.woff') format('woff');
+      font-weight: 400; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: 'Ayuthaya';
+      src: url('fonts/Ayuthaya-Regular.woff2') format('woff2'),
+           url('fonts/Ayuthaya-Regular.woff') format('woff');
+      font-weight: 400; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: 'Zalando Sans';
+      font-style: normal; font-display: swap; font-weight: 200 900;
+      src: url('https://cdn.jsdelivr.net/fontsource/fonts/zalando-sans:vf@latest/latin-wght-normal.woff2') format('woff2-variations');
+    }
+
+    :root {
+      --warm:   #EA5339;
+      --cream:  #EEE5DC;
+      --dark:   #2B2422;
+      --white:  #FFFFFF;
+      --border: #D9CCC0;
+      --muted:  #666666;
+      --faint:  #999999;
+      --err:    #DC3545;
+      --err-bg: #F8D7DA;
+      --ok-bg:  rgba(195,215,44,0.2);
+      --ok-border: #8fa800;
+      --ok-text:   #4a5a00;
+      --font-h: 'PP Museum', 'Georgia', serif;
+      --font-s: 'Ayuthaya', 'Helvetica Neue', sans-serif;
+      --font-b: 'Zalando Sans', 'Inter', sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-b);
+      background: var(--cream);
+      color: var(--dark);
+      min-height: 100vh;
+      display: flex;
+      align-items: stretch;
+    }
+
+    /* Painel esquerdo */
+    .brand-panel {
+      flex: 1;
+      background: var(--dark);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 48px;
+      position: relative;
+      overflow: hidden;
+    }
+    .brand-panel::before, .brand-panel::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      border: 2px solid rgba(238,229,220,0.08);
+    }
+    .brand-panel::before { width: 380px; height: 380px; top: -60px; right: -100px; }
+    .brand-panel::after  { width: 260px; height: 260px; bottom: -50px; left: -50px; }
+
+    .brand-logo { max-width: 160px; max-height: 64px; object-fit: contain; display: block; margin-bottom: 28px; }
+    .brand-logo-fallback {
+      font-family: var(--font-h); font-size: 28px; font-weight: 400;
+      text-transform: uppercase; letter-spacing: 0.04em; color: var(--cream);
+      margin-bottom: 28px; display: none;
+    }
+    .brand-tagline {
+      font-family: var(--font-h); font-size: 24px; font-weight: 300;
+      text-transform: uppercase; letter-spacing: 0.04em; color: var(--cream);
+      text-align: center; line-height: 1.3; margin-bottom: 14px;
+      position: relative; z-index: 1;
+    }
+    .brand-sub {
+      font-family: var(--font-b); font-size: 13px; color: rgba(238,229,220,0.6);
+      text-align: center; max-width: 260px; line-height: 1.5;
+      position: relative; z-index: 1;
+    }
+    .brand-check-item {
+      display: flex; align-items: center; gap: 10px;
+      font-family: var(--font-b); font-size: 13px;
+      color: rgba(238,229,220,0.75); margin-top: 12px;
+      position: relative; z-index: 1;
+    }
+    .brand-check-item svg { width: 16px; height: 16px; fill: var(--warm); flex-shrink: 0; }
+
+    /* Painel direito */
+    .form-panel {
+      width: 460px; min-width: 320px;
+      background: var(--white);
+      display: flex; flex-direction: column; justify-content: center;
+      padding: 52px 48px;
+      overflow-y: auto;
+    }
+    .form-title {
+      font-family: var(--font-h); font-size: 22px; font-weight: 400;
+      text-transform: uppercase; letter-spacing: 0.04em; color: var(--dark);
+      margin-bottom: 4px;
+    }
+    .form-subtitle {
+      font-family: var(--font-b); font-size: 14px; color: var(--muted);
+      margin-bottom: 28px; line-height: 1.4;
+    }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      font-family: var(--font-s); display: block; margin-bottom: 7px;
+      font-size: 12px; font-weight: 400; color: var(--dark);
+      text-transform: uppercase; letter-spacing: 0.07em;
+    }
+    .form-group input {
+      font-family: var(--font-b); width: 100%; padding: 12px 16px;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      font-size: 15px; color: var(--dark); background: var(--white);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-group input:focus {
+      outline: none; border-color: var(--warm);
+      box-shadow: 0 0 0 3px rgba(234,83,57,0.12);
+    }
+    .form-group input.input-ok   { border-color: #8fa800; }
+    .form-group input.input-err  { border-color: var(--err); }
+    .form-group input::placeholder { color: var(--faint); }
+
+    .field-hint {
+      font-family: var(--font-b); font-size: 12px;
+      margin-top: 5px; line-height: 1.4;
+    }
+    .field-hint.ok  { color: var(--ok-text); }
+    .field-hint.err { color: var(--err); }
+
+    .senha-strength {
+      display: flex; gap: 4px; margin-top: 8px;
+    }
+    .senha-bar {
+      flex: 1; height: 4px; border-radius: 2px;
+      background: var(--border); transition: background 0.3s;
+    }
+
+    .alert {
+      font-family: var(--font-b); font-size: 14px;
+      padding: 12px 16px; border-radius: 8px;
+      margin-bottom: 18px; display: none;
+    }
+    .alert.show { display: block; }
+    .alert-error   { background: var(--err-bg); color: var(--err); border: 1px solid var(--err); }
+    .alert-success { background: var(--ok-bg); color: var(--ok-text); border: 1px solid var(--ok-border); }
+
+    .btn-submit {
+      font-family: var(--font-s); width: 100%; padding: 14px;
+      background: var(--warm); color: var(--cream); border: none;
+      border-radius: 999px; font-size: 14px; font-weight: 400;
+      text-transform: uppercase; letter-spacing: 0.07em; cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s; margin-top: 8px;
+    }
+    .btn-submit:hover  { opacity: 0.88; transform: translateY(-1px); }
+    .btn-submit:active { transform: translateY(0); }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .form-link {
+      text-align: center; margin-top: 20px;
+      font-family: var(--font-b); font-size: 13px; color: var(--muted);
+    }
+    .form-link a { color: var(--warm); text-decoration: none; font-weight: 600; }
+    .form-link a:hover { text-decoration: underline; }
+
+    .form-footer {
+      font-family: var(--font-b); margin-top: 24px;
+      font-size: 12px; color: var(--faint); text-align: center;
+    }
+
+    @media (max-width: 720px) {
+      body { flex-direction: column; }
+      .brand-panel { flex: none; padding: 28px 20px; min-height: 180px; }
+      .brand-tagline { font-size: 18px; }
+      .brand-check-item { display: none; }
+      .form-panel { width: 100%; padding: 32px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Painel da marca -->
+  <div class="brand-panel" aria-hidden="true">
+    <img
+      src="Imagens%20para%20Usar/logo.png" alt="Renova Be"
+      class="brand-logo"
+      onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+    />
+    <span class="brand-logo-fallback">RENOVA BE</span>
+    <p class="brand-tagline">Bem-vindo ao time<br/>Renova Be.</p>
+    <p class="brand-sub">Crie sua conta e acesse tudo que você precisa para evoluir com a gente.</p>
+    <div class="brand-check-item">
+      <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+      <span>E-mail corporativo obrigatório</span>
+    </div>
+    <div class="brand-check-item">
+      <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+      <span>Acesso imediato após o cadastro</span>
+    </div>
+    <div class="brand-check-item">
+      <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+      <span>Seus dados protegidos pela LGPD</span>
+    </div>
+  </div>
+
+  <!-- Formulário de cadastro -->
+  <div class="form-panel">
+    <h1 class="form-title">Criar<br/>sua conta</h1>
+    <p class="form-subtitle">Use seu e-mail corporativo Vitabe / Renova Be.</p>
+
+    <div id="alertMsg" class="alert" role="alert"></div>
+
+    <form id="cadastroForm" novalidate>
+
+      <div class="form-group">
+        <label for="nome">Nome completo</label>
+        <input type="text" id="nome" placeholder="Seu nome" required autocomplete="name" />
+      </div>
+
+      <div class="form-group">
+        <label for="email">E-mail corporativo</label>
+        <input type="email" id="email" placeholder="seunome@vitabe.com.br" required autocomplete="email" />
+        <p class="field-hint" id="emailHint"></p>
+      </div>
+
+      <div class="form-group">
+        <label for="senha">Senha</label>
+        <input type="password" id="senha" placeholder="Mínimo 6 caracteres" required autocomplete="new-password" />
+        <div class="senha-strength" id="senhaStrength" aria-hidden="true">
+          <div class="senha-bar" id="bar1"></div>
+          <div class="senha-bar" id="bar2"></div>
+          <div class="senha-bar" id="bar3"></div>
+          <div class="senha-bar" id="bar4"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="confirmarSenha">Confirmar senha</label>
+        <input type="password" id="confirmarSenha" placeholder="Repita a senha" required autocomplete="new-password" />
+        <p class="field-hint" id="confirmarHint"></p>
+      </div>
+
+      <button type="submit" class="btn-submit" id="btnCadastrar">Criar conta</button>
+    </form>
+
+    <p class="form-link">Já tem conta? <a href="login.html">Entrar</a></p>
+    <p class="form-footer">© 2026 Renova Be</p>
+  </div>
+
+  <script src="db.js"></script>
+  <script>
+    // Se já está logado, redireciona
+    if (dbGetSessao()) {
+      window.location.href = 'index.html';
+    }
+
+    var alertMsg     = document.getElementById('alertMsg');
+    var emailInput   = document.getElementById('email');
+    var emailHint    = document.getElementById('emailHint');
+    var senhaInput   = document.getElementById('senha');
+    var confirmarInput  = document.getElementById('confirmarSenha');
+    var confirmarHint   = document.getElementById('confirmarHint');
+    var bars = [document.getElementById('bar1'), document.getElementById('bar2'),
+                document.getElementById('bar3'), document.getElementById('bar4')];
+
+    // Feedback de força de senha em tempo real
+    senhaInput.addEventListener('input', function() {
+      var v = this.value;
+      var pontos = 0;
+      if (v.length >= 6)  pontos++;
+      if (v.length >= 10) pontos++;
+      if (/[A-Z]/.test(v) || /[0-9]/.test(v)) pontos++;
+      if (/[^a-zA-Z0-9]/.test(v)) pontos++;
+
+      var cores = ['#DC3545', '#F18F33', '#C3D72C', '#4caf50'];
+      bars.forEach(function(b, i) {
+        b.style.background = i < pontos ? cores[pontos - 1] : '#D9CCC0';
+      });
+    });
+
+    // Validação do campo de confirmação
+    confirmarInput.addEventListener('input', function() {
+      if (!this.value) { confirmarHint.textContent = ''; confirmarHint.className = 'field-hint'; return; }
+      if (this.value === senhaInput.value) {
+        confirmarHint.textContent = 'Senhas coincidem.';
+        confirmarHint.className = 'field-hint ok';
+        confirmarInput.className = 'input-ok';
+      } else {
+        confirmarHint.textContent = 'As senhas não coincidem.';
+        confirmarHint.className = 'field-hint err';
+        confirmarInput.className = 'input-err';
+      }
+    });
+
+    // Validação do e-mail contra lista licenciada
+    var emailTimeout;
+    emailInput.addEventListener('input', function() {
+      clearTimeout(emailTimeout);
+      var v = this.value.trim().toLowerCase();
+      emailHint.textContent = '';
+      emailHint.className = 'field-hint';
+      emailInput.className = '';
+      if (!v) return;
+      emailTimeout = setTimeout(function() {
+        if (emailLicenciado(v)) {
+          var nome = getNomeLicenciado(v);
+          emailHint.textContent = 'E-mail válido' + (nome ? ' — ' + nome : '') + '.';
+          emailHint.className = 'field-hint ok';
+          emailInput.className = 'input-ok';
+          // Sugerir nome se o campo ainda estiver vazio
+          var nomeField = document.getElementById('nome');
+          if (!nomeField.value && nome) nomeField.value = nome;
+        } else if (v.includes('@')) {
+          emailHint.textContent = 'Este e-mail não está na lista de colaboradores licenciados.';
+          emailHint.className = 'field-hint err';
+          emailInput.className = 'input-err';
+        }
+      }, 400);
+    });
+
+    // Envio do formulário
+    document.getElementById('cadastroForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      alertMsg.className = 'alert';
+
+      var nome     = document.getElementById('nome').value.trim();
+      var email    = emailInput.value.trim();
+      var senha    = senhaInput.value;
+      var confirmar = confirmarInput.value;
+
+      if (!nome) {
+        mostrarAlerta('error', 'Informe seu nome completo.');
+        return;
+      }
+      if (!email) {
+        mostrarAlerta('error', 'Informe seu e-mail corporativo.');
+        return;
+      }
+      if (!emailLicenciado(email)) {
+        mostrarAlerta('error', 'Este e-mail não está na lista de colaboradores licenciados.');
+        return;
+      }
+      if (!senha || senha.length < 6) {
+        mostrarAlerta('error', 'A senha precisa ter no mínimo 6 caracteres.');
+        return;
+      }
+      if (senha !== confirmar) {
+        mostrarAlerta('error', 'As senhas não coincidem.');
+        return;
+      }
+
+      var resultado = dbCriarUsuario(nome, email, senha);
+
+      if (resultado === 'EMAIL_JA_CADASTRADO') {
+        mostrarAlerta('error', 'Já existe uma conta com este e-mail. <a href="login.html">Entrar</a>');
+        return;
+      }
+      if (resultado === 'EMAIL_NAO_LICENCIADO') {
+        mostrarAlerta('error', 'Este e-mail não está na lista de colaboradores licenciados.');
+        return;
+      }
+      if (resultado === 'SENHA_FRACA') {
+        mostrarAlerta('error', 'Senha muito curta. Use no mínimo 6 caracteres.');
+        return;
+      }
+
+      // Sucesso — faz login direto
+      dbIniciarSessao(resultado);
+      mostrarAlerta('success', 'Conta criada! Redirecionando…');
+      setTimeout(function() { window.location.href = 'index.html'; }, 1200);
+    });
+
+    function mostrarAlerta(tipo, html) {
+      alertMsg.innerHTML = html;
+      alertMsg.className = 'alert alert-' + tipo + ' show';
+    }
+
+    document.getElementById('email').focus();
+  </script>
+
+</body>
+</html>

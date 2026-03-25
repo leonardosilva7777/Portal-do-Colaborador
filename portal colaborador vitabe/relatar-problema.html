@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Relatar Problema — Portal do Colaborador</title>
+  <link rel="stylesheet" href="portal.css" />
+  <style>
+    .form-group textarea { resize: vertical; min-height: 120px; }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+    .success-message {
+      background: rgba(195, 215, 44, 0.2);
+      border: 1px solid var(--color-vivid-green);
+      color: #4a5a00;
+      padding: 14px 18px;
+      border-radius: var(--radius-md);
+      font-family: var(--fonte-apoio);
+      font-size: 14px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    .success-message.show { display: block; }
+    .aviso-anonimato {
+      background: rgba(110, 170, 191, 0.15);
+      border-left: 3px solid var(--color-soft-sky);
+      padding: 12px 16px;
+      border-radius: 0 var(--radius-md) var(--radius-md) 0;
+      font-family: var(--fonte-apoio);
+      font-size: 13px;
+      color: var(--cor-texto-secundario);
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="user-bar" role="banner">
+    <div class="user-dropdown">
+      <div class="user-dropdown-trigger user-info">
+        <span class="user-avatar" id="userAvatar">E</span>
+        <span class="user-name" id="userName">Colaborador</span>
+      </div>
+      <div class="user-dropdown-menu"><a href="meus-dados.html">Meus dados</a></div>
+    </div>
+    <button type="button" class="btn-logout" onclick="logout()">Sair</button>
+  </div>
+
+  <div class="app-layout">
+    <aside class="sidebar" role="navigation" aria-label="Navegação principal">
+      <div class="sidebar-logo">
+        <a href="index.html" aria-label="Renova Be — Início">
+          <img src="Imagens%20para%20Usar/logo.png" alt="Renova Be" class="brand-logo" onerror="this.style.display='none'; this.nextElementSibling.classList.add('visible');">
+          <span class="logo-fallback" aria-hidden="true">RENOVA BE</span>
+        </a>
+      </div>
+      <ul class="sidebar-nav">
+        <li><a href="index.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></span> Início</a></li>
+        <li><a href="comunicados.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z"/></svg></span> Mural de Comunicados</a></li>
+        <li><a href="empresa.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg></span> Empresa</a></li>
+        <li><a href="beneficios.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.11-.31.18-.65.18-1 0-1.66-1.34-3-3-3-1.05 0-1.96.54-2.5 1.35l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2z"/></svg></span> Benefícios</a></li>
+        <li><a href="politicas.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg></span> Políticas</a></li>
+        <li><a href="ti-suporte.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 1c-4.97 0-9 4.03-9 9v7c0 1.66 1.34 3 3 3h3v-8H5v-2c0-3.87 3.13-7 7-7s7 3.13 7 7v2h-4v8h3c1.66 0 3-1.34 3-3v-7c0-4.97-4.03-9-9-9z"/></svg></span> TI e Suporte</a></li>
+        <li><a href="calendario.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/></svg></span> Calendário</a></li>
+        <li><a href="fale-gg.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z"/></svg></span> Fale com o G&amp;G</a></li>
+        <li><a href="lgpd.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg></span> LGPD</a></li>
+        <li><a href="codigo-conduta.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> Código de Conduta</a></li>
+        <li class="nav-divider"></li>
+        <li><a href="relatar-problema.html" class="active"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg></span> Relatar Problema</a></li>
+        <li class="nav-admin-only" style="display:none"><a href="mensagens-reports.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg></span> Mensagens e Reports</a></li>
+      </ul>
+    </aside>
+
+    <main class="main-wrap">
+      <div class="container">
+        <div class="main-content">
+
+          <div>
+            <h1 class="page-title">Relatar Problema</h1>
+            <p class="welcome-subtitle">Clareza é potência. Conte o que aconteceu.</p>
+          </div>
+
+          <section class="card" aria-labelledby="form-titulo">
+            <h2 id="form-titulo">Formulário de reporte</h2>
+
+            <div class="aviso-anonimato">
+              Você pode optar por se identificar ou enviar de forma anônima. Em ambos os casos, seu reporte será tratado com sigilo e analisado com atenção pela equipe responsável.
+            </div>
+
+            <div id="successMessage" class="success-message" role="status">
+              Reporte enviado com sucesso! Nossa equipe irá analisar e retornar em breve.
+            </div>
+
+            <form id="reportForm" novalidate>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="repCategoria">Categoria do problema</label>
+                  <select id="repCategoria" required>
+                    <option value="" disabled selected>Selecione</option>
+                    <option value="comportamento">Comportamento inadequado</option>
+                    <option value="assedio">Assédio (moral ou sexual)</option>
+                    <option value="seguranca">Segurança e saúde</option>
+                    <option value="ti">Problema técnico (TI)</option>
+                    <option value="processos">Falha em processos</option>
+                    <option value="etica">Conduta ética</option>
+                    <option value="outro">Outro</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="repUrgencia">Urgência</label>
+                  <select id="repUrgencia">
+                    <option value="baixa">Baixa — pode aguardar</option>
+                    <option value="media" selected>Média — atenção em breve</option>
+                    <option value="alta">Alta — precisa de ação rápida</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="repDescricao">Descrição</label>
+                <textarea id="repDescricao" placeholder="Descreva o que aconteceu, quando ocorreu e qualquer contexto que ajude a entender a situação." required></textarea>
+              </div>
+
+              <div class="form-group">
+                <label for="repIdentificacao">Identificação (opcional)</label>
+                <input type="text" id="repIdentificacao" placeholder="Nome ou deixe em branco para envio anônimo" />
+              </div>
+
+              <button type="submit" class="btn" style="margin-top:8px">Enviar reporte</button>
+            </form>
+          </section>
+
+        </div>
+      </div>
+    </main>
+  </div>
+
+  
+
+  <script src="db.js"></script>
+  <script src="data.js"></script>
+  <script src="content.js"></script>
+  <script>
+    dbVerificarAcesso();
+    (function () {
+      var s = dbGetSessao(); var n = s ? s.nome : 'Colaborador';
+      document.getElementById('userName').textContent = n;
+      document.getElementById('userAvatar').textContent = n.charAt(0).toUpperCase();
+      if (dbIsAdmin()) {
+        document.querySelectorAll('.nav-admin-only').forEach(function(el) { el.style.display = ''; });
+      }
+    })();
+    function logout() { dbEncerrarSessao(); }
+
+    document.getElementById('reportForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var categoria = document.getElementById('repCategoria').value;
+      var descricao = document.getElementById('repDescricao').value.trim();
+      var nomeId    = document.getElementById('repIdentificacao').value.trim();
+      if (!categoria || !descricao) return;
+      var s = dbGetSessao();
+      dbSalvarReport({
+        nome:      nomeId || (s ? s.nome : ''),
+        categoria: categoria,
+        descricao: descricao,
+        anonimo:   !nomeId
+      });
+      document.getElementById('successMessage').classList.add('show');
+      this.reset();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  </script>
+
+</body>
+</html>

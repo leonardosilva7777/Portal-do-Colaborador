@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Benefícios — Portal do Colaborador</title>
+  <link rel="stylesheet" href="portal.css" />
+</head>
+<body>
+
+  <div class="user-bar" role="banner">
+    <div class="user-dropdown">
+      <div class="user-dropdown-trigger user-info">
+        <span class="user-avatar" id="userAvatar">E</span>
+        <span class="user-name" id="userName">Colaborador</span>
+      </div>
+      <div class="user-dropdown-menu"><a href="meus-dados.html">Meus dados</a></div>
+    </div>
+    <button type="button" class="btn-logout" onclick="logout()">Sair</button>
+  </div>
+
+  <div class="app-layout">
+    <aside class="sidebar" role="navigation" aria-label="Navegação principal">
+      <div class="sidebar-logo">
+        <a href="index.html" aria-label="Renova Be — Início">
+          <img src="Imagens%20para%20Usar/logo.png" alt="Renova Be" class="brand-logo" onerror="this.style.display='none'; this.nextElementSibling.classList.add('visible');">
+          <span class="logo-fallback" aria-hidden="true">RENOVA BE</span>
+        </a>
+      </div>
+      <ul class="sidebar-nav">
+        <li><a href="index.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></span> Início</a></li>
+        <li><a href="comunicados.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z"/></svg></span> Mural de Comunicados</a></li>
+        <li><a href="empresa.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg></span> Empresa</a></li>
+        <li><a href="beneficios.html" class="active"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.11-.31.18-.65.18-1 0-1.66-1.34-3-3-3-1.05 0-1.96.54-2.5 1.35l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2z"/></svg></span> Benefícios</a></li>
+        <li><a href="politicas.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg></span> Políticas</a></li>
+        <li><a href="ti-suporte.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 1c-4.97 0-9 4.03-9 9v7c0 1.66 1.34 3 3 3h3v-8H5v-2c0-3.87 3.13-7 7-7s7 3.13 7 7v2h-4v8h3c1.66 0 3-1.34 3-3v-7c0-4.97-4.03-9-9-9z"/></svg></span> TI e Suporte</a></li>
+        <li><a href="calendario.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/></svg></span> Calendário</a></li>
+        <li><a href="fale-gg.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z"/></svg></span> Fale com o G&amp;G</a></li>
+        <li><a href="lgpd.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg></span> LGPD</a></li>
+        <li><a href="codigo-conduta.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> Código de Conduta</a></li>
+        <li class="nav-divider"></li>
+        <li><a href="relatar-problema.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg></span> Relatar Problema</a></li>
+        <li class="nav-admin-only" style="display:none"><a href="mensagens-reports.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg></span> Mensagens e Reports</a></li>
+      </ul>
+    </aside>
+
+    <main class="main-wrap">
+      <div class="container">
+        <div class="main-content">
+
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+            <div class="beneficios-hero" style="margin-bottom:0">
+              <h2>Benefícios</h2>
+              <p class="beneficios-subtitle">Renove-se!</p>
+            </div>
+            <button class="admin-create-btn" id="btnNovoBeneficio" style="display:none" onclick="abrirModalBeneficio()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+              Adicionar benefício
+            </button>
+          </div>
+
+          <div class="benefit-grid" id="benefitGrid">
+            <!-- Benefícios customizados injetados via JS -->
+          </div>
+
+        </div>
+      </div>
+    </main>
+  </div>
+
+  
+
+  <!-- Modal novo benefício -->
+  <div id="modalBeneficio" class="rb-modal-overlay" style="display:none" onclick="if(event.target===this)fecharModalBeneficio()">
+    <div class="rb-modal" onclick="event.stopPropagation()">
+      <h3>Novo Benefício</h3>
+      <div class="form-group"><label for="bNome">Nome</label><input type="text" id="bNome" placeholder="Nome do benefício" /></div>
+      <div class="form-group"><label for="bLink">Link (opcional)</label><input type="url" id="bLink" placeholder="https://..." /></div>
+      <div class="form-group"><label for="bImagem">Imagem de capa (opcional)</label><input type="file" id="bImagem" accept="image/*" /></div>
+      <div class="form-group"><label for="bPdf">Arquivo PDF (opcional)</label><input type="file" id="bPdf" accept="application/pdf" /></div>
+      <div class="rb-modal-footer">
+        <button type="button" class="rb-btn-cancel" onclick="fecharModalBeneficio()">Cancelar</button>
+        <button type="button" class="btn" style="margin-top:0" onclick="salvarBeneficio()">Adicionar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="db.js"></script>
+  <script src="data.js"></script>
+  <script src="content.js"></script>
+  <script>
+    dbVerificarAcesso();
+    (function () {
+      var s = dbGetSessao(); var n = s ? s.nome : 'Colaborador';
+      document.getElementById('userName').textContent = n;
+      document.getElementById('userAvatar').textContent = n.charAt(0).toUpperCase();
+      if (dbIsAdmin()) {
+        document.getElementById('btnNovoBeneficio').style.display = '';
+        document.querySelectorAll('.nav-admin-only').forEach(function(el) { el.style.display = ''; });
+      }
+    })();
+    function logout() { dbEncerrarSessao(); }
+
+    function escHtml(str) {
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function renderCustomBeneficios() {
+      var lista = dbGetBeneficiosCustom();
+      var grid  = document.getElementById('benefitGrid');
+      // Remove previously injected custom cards
+      grid.querySelectorAll('.benefit-card-custom').forEach(function(el) { el.remove(); });
+      lista.forEach(function(b) {
+        var wrapper = document.createElement('div');
+        wrapper.className = 'benefit-card-custom';
+        wrapper.style.position = 'relative';
+        var href = b.pdf ? '#' : (b.link || '#');
+        var target = b.link ? '_blank' : '_self';
+        var imgHtml = b.imagem
+          ? '<img src="' + escHtml(b.imagem) + '" alt="" style="width:100%;height:100%;object-fit:cover">'
+          : '';
+        var pdfIcon = b.pdf ? '<span style="position:absolute;bottom:36px;right:10px;background:rgba(234,83,57,.9);color:#fff;border-radius:6px;padding:3px 8px;font-size:10px;font-family:var(--fonte-secundaria);text-transform:uppercase;letter-spacing:.04em">PDF</span>' : '';
+        var delBtn = dbIsAdmin()
+          ? '<button onclick="excluirCustom(\'' + b.id + '\')" style="position:absolute;top:6px;right:6px;background:rgba(43,36,34,.7);color:#fff;border:none;border-radius:999px;padding:3px 10px;font-size:11px;cursor:pointer;z-index:2">Excluir</button>'
+          : '';
+        var clickHandler = b.pdf ? ' onclick="abrirPdf(\'' + b.id + '\');return false;"' : '';
+        wrapper.innerHTML = delBtn + pdfIcon
+          + '<a href="' + escHtml(href) + '" class="benefit-card" target="' + target + '"' + clickHandler + '>'
+          + '<div class="benefit-card-image">' + imgHtml + '</div>'
+          + '<span class="benefit-card-name">' + escHtml(b.nome) + '</span>'
+          + '</a>';
+        grid.appendChild(wrapper);
+      });
+    }
+
+    function excluirCustom(id) {
+      if (!confirm('Excluir este benefício?')) return;
+      dbExcluirBeneficioCustom(id);
+      renderCustomBeneficios();
+    }
+
+    function abrirModalBeneficio() { document.getElementById('modalBeneficio').style.display = 'flex'; }
+    function fecharModalBeneficio() {
+      document.getElementById('modalBeneficio').style.display = 'none';
+      document.getElementById('bNome').value = '';
+      document.getElementById('bLink').value = '';
+      document.getElementById('bImagem').value = '';
+      document.getElementById('bPdf').value = '';
+    }
+
+    function salvarBeneficio() {
+      var nome    = document.getElementById('bNome').value.trim();
+      var link    = document.getElementById('bLink').value.trim();
+      var imgFile = document.getElementById('bImagem').files[0];
+      var pdfFile = document.getElementById('bPdf').files[0];
+      if (!nome) { alert('Informe o nome do benefício.'); return; }
+
+      var imgB64 = '';
+      var pdfB64 = '';
+      var pending = 0;
+
+      function finalizar() {
+        dbCriarBeneficioCustom({ nome: nome, link: link, imagem: imgB64, pdf: pdfB64 });
+        fecharModalBeneficio();
+        renderCustomBeneficios();
+      }
+
+      function check() { pending--; if (pending <= 0) finalizar(); }
+
+      if (imgFile) {
+        if (imgFile.size > 2 * 1024 * 1024) { alert('Imagem máx 2MB.'); return; }
+        pending++;
+        var fr1 = new FileReader();
+        fr1.onload = function(e) { imgB64 = e.target.result; check(); };
+        fr1.readAsDataURL(imgFile);
+      }
+      if (pdfFile) {
+        if (pdfFile.size > 5 * 1024 * 1024) { alert('PDF máx 5MB.'); return; }
+        pending++;
+        var fr2 = new FileReader();
+        fr2.onload = function(e) { pdfB64 = e.target.result; check(); };
+        fr2.readAsDataURL(pdfFile);
+      }
+      if (pending === 0) finalizar();
+    }
+
+    function abrirPdf(id) {
+      var lista = dbGetBeneficiosCustom();
+      var b = lista.find(function(x) { return x.id === id; });
+      if (b && b.pdf) {
+        var w = window.open('');
+        w.document.write('<iframe src="' + b.pdf + '" style="width:100%;height:100%;border:none;position:fixed;inset:0"></iframe>');
+        w.document.title = b.nome;
+      }
+    }
+
+    renderCustomBeneficios();
+  </script>
+</body>
+</html>

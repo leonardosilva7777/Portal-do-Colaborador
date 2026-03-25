@@ -1,0 +1,23 @@
+FONTES RENOVA BE - PORTAL DO COLABORADOR
+=========================================
+
+Coloque os arquivos das fontes nesta pasta para que a página carregue corretamente:
+
+1) PP MUSEUM (fonte primária)
+   - Títulos e mensagens de impacto. Uso em CAIXA ALTA, pesos Light ou Regular.
+   - Arquivos esperados (nomes podem variar conforme o que você baixar):
+     • PPMuseum-Light.woff2  ou  PP-Museum-Light.woff2
+     • PPMuseum-Regular.woff2 ou  PP-Museum-Regular.woff2
+   - Se os nomes forem outros, edite no HTML as referências em @font-face (procure por "PP Museum").
+
+2) AYUTHAYA (fonte secundária)
+   - Descritivos, chamadas curtas, impacto visual. Uso em CAIXA ALTA.
+   - Arquivo esperado:
+     • Ayuthaya-Regular.woff2  ou  Ayuthaya.woff2
+   - Se o nome for outro, edite no HTML as referências em @font-face (procure por "Ayuthaya").
+
+3) ZALANDO SANS (fonte de apoio)
+   - Já está sendo carregada via internet (CDN). Não é necessário colocar arquivo aqui.
+   - Usada em textos longos e informativos.
+
+Formato recomendado: .woff2 (melhor compressão e suporte nos navegadores).
