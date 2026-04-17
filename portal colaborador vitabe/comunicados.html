@@ -104,11 +104,13 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="db.js"></script>
   <script src="data.js"></script>
   <script src="content.js"></script>
   <script>
-    dbVerificarAcesso();
+    (async function() {
+    await dbVerificarAcesso();
     (function () {
       var s = dbGetSessao(); var n = s ? s.nome : 'Colaborador';
       document.getElementById('userName').textContent = n;
@@ -118,7 +120,7 @@
         document.querySelectorAll('.nav-admin-only').forEach(function(el) { el.style.display = ''; });
       }
     })();
-    function logout() { dbEncerrarSessao(); }
+    window.logout = async function() { await dbEncerrarSessao(); };
 
     var tagColors = {
       'Geral': 'geral', 'Benefícios': 'beneficios', 'TI': 'ti',
@@ -165,33 +167,33 @@
       });
     }
 
-    function escHtml(str) {
+    window.escHtml = function(str) {
       return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
-    function excluirComunicado(id, ev) {
+    window.excluirComunicado = function(id, ev) {
       ev.stopPropagation();
       if (!confirm('Excluir este comunicado?')) return;
       dbExcluirComunicado(id);
       renderMural();
     }
 
-    function abrirModalComunicado() {
+    window.abrirModalComunicado = function() {
       document.getElementById('modalComunicado').style.display = 'flex';
     }
 
-    function fecharModalComunicado() {
+    window.fecharModalComunicado = function() {
       document.getElementById('modalComunicado').style.display = 'none';
       document.getElementById('cTitulo').value = '';
       document.getElementById('cTexto').value = '';
       document.getElementById('cImagem').value = '';
     }
 
-    function fecharModalSe(e) {
+    window.fecharModalSe = function(e) {
       if (e.target === document.getElementById('modalComunicado')) fecharModalComunicado();
     }
 
-    function salvarComunicado() {
+    window.salvarComunicado = function() {
       var titulo = document.getElementById('cTitulo').value.trim();
       var texto  = document.getElementById('cTexto').value.trim();
       var tag    = document.getElementById('cTag').value;
@@ -212,7 +214,7 @@
       }
     }
 
-    function abrirLeitura(idx) {
+    window.abrirLeitura = function(idx) {
       var c = window._comunicados[idx];
       if (!c) return;
       var tagCls = tagColors[c.tag] || '';
@@ -227,11 +229,12 @@
       document.getElementById('modalLeitura').style.display = 'flex';
     }
 
-    function fecharLeitura() {
+    window.fecharLeitura = function() {
       document.getElementById('modalLeitura').style.display = 'none';
     }
 
     renderMural();
+      })();
   </script>
 
   <!-- Modal leitura comunicado -->

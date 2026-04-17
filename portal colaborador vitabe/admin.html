@@ -297,232 +297,8 @@
 
   <div class="toast" id="toast"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="db.js"></script>
-  <script>
-    // Só admin pode acessar
-    dbVerificarAdmin();
-
-    // Preenche header
-    (function () {
-      var sessao = dbGetSessao();
-      if (!sessao) return;
-      var elNome   = document.getElementById('userName');
-      var elAvatar = document.getElementById('userAvatar');
-      if (elNome)   elNome.textContent   = sessao.nome;
-      if (elAvatar) elAvatar.textContent = sessao.nome.charAt(0).toUpperCase();
-    })();
-
-    function logout() {
-      dbEncerrarSessao();
-      window.location.href = 'login.html';
-    }
-
-    // ── Estado local ──────────────────────────────────────────────────────────
-    var sessaoAtual = dbGetSessao();
-    var sortCol  = 'criadoEm';
-    var sortAsc  = false;
-
-    // ── Helpers ───────────────────────────────────────────────────────────────
-    function formatarData(iso) {
-      if (!iso) return '—';
-      var d = new Date(iso);
-      return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-    }
-
-    function mostrarToast(msg) {
-      var t = document.getElementById('toast');
-      t.textContent = msg;
-      t.classList.add('show');
-      setTimeout(function() { t.classList.remove('show'); }, 2800);
-    }
-
-    // ── Render ────────────────────────────────────────────────────────────────
-    function render() {
-      var todos    = dbGetUsuarios();
-      var busca    = document.getElementById('searchInput').value.trim().toLowerCase();
-      var filtro   = document.getElementById('filterSelect').value;
-
-      // Stats
-      document.getElementById('statTotal').textContent     = todos.length;
-      document.getElementById('statAtivos').textContent    = todos.filter(function(u) { return u.ativo; }).length;
-      document.getElementById('statAdmins').textContent    = todos.filter(function(u) { return u.role === 'admin'; }).length;
-      document.getElementById('statLicenciados').textContent = Object.keys(EMAILS_LICENCIADOS).length;
-
-      // Filtro
-      var lista = todos.filter(function(u) {
-        var matchBusca = !busca ||
-          u.nome.toLowerCase().includes(busca) ||
-          u.email.toLowerCase().includes(busca);
-
-        var matchFiltro = filtro === 'todos' ||
-          (filtro === 'admin'   && u.role === 'admin') ||
-          (filtro === 'user'    && u.role === 'user'  && u.ativo) ||
-          (filtro === 'inativo' && !u.ativo);
-
-        return matchBusca && matchFiltro;
-      });
-
-      // Ordenação
-      lista.sort(function(a, b) {
-        var va = a[sortCol] || '';
-        var vb = b[sortCol] || '';
-        if (va < vb) return sortAsc ?  -1 : 1;
-        if (va > vb) return sortAsc ?   1 : -1;
-        return 0;
-      });
-
-      var tbody = document.getElementById('usersTableBody');
-      if (lista.length === 0) {
-        tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Nenhum usuário encontrado.</td></tr>';
-        return;
-      }
-
-      tbody.innerHTML = lista.map(function(u) {
-        var isMe      = u.id === sessaoAtual.id;
-        var isAdmin   = u.role === 'admin';
-        var avatarClass = isAdmin ? 'mini-avatar admin-avatar' : 'mini-avatar';
-        var inicial   = u.nome.charAt(0).toUpperCase();
-
-        var btnAdmin = isMe
-          ? '<span style="font-size:11px;color:var(--cor-texto-claro);font-family:var(--fonte-secundaria)">você</span>'
-          : isAdmin
-            ? '<button class="btn-action btn-toggle-admin remover" onclick="toggleAdmin(\'' + u.id + '\')">Remover admin</button>'
-            : '<button class="btn-action btn-toggle-admin" onclick="toggleAdmin(\'' + u.id + '\')">Tornar admin</button>';
-
-        var btnStatus = isMe ? '' : u.ativo
-          ? '<button class="btn-action btn-toggle-status" onclick="toggleStatus(\'' + u.id + '\', false)">Desativar</button>'
-          : '<button class="btn-action btn-toggle-status reativar" onclick="toggleStatus(\'' + u.id + '\', true)">Reativar</button>';
-
-        var btnExcluir = isMe ? '' : '<button class="btn-action btn-excluir" onclick="excluirUsuario(\'' + u.id + '\', \'' + u.nome.replace(/'/g,'') + '\')">Excluir</button>';
-
-        var cargoText = u.cargo ? escHtml(u.cargo) : '<span style="color:var(--cor-texto-claro);font-style:italic">—</span>';
-        var btnEditProf = '<button class="btn-action" style="background:rgba(110,170,191,0.15);color:#1f6278;border:1px solid rgba(110,170,191,0.3)" onclick="abrirModalProfissional(\'' + u.id + '\')">Editar cargo</button>';
-        return '<tr>' +
-          '<td>' +
-            '<div class="user-cell">' +
-              '<div class="' + avatarClass + '">' + inicial + '</div>' +
-              '<div class="user-cell-info">' +
-                '<div class="user-name" style="cursor:pointer;color:var(--color-warm-intention)" onclick="abrirModalProfissional(\'' + u.id + '\')" title="Editar dados profissionais">' + escHtml(u.nome) + '</div>' +
-                '<div class="user-email">' + escHtml(u.email) + '</div>' +
-              '</div>' +
-            '</div>' +
-          '</td>' +
-          '<td><span class="data-text">' + cargoText + (u.departamento ? '<br><small style="color:var(--cor-texto-claro)">' + escHtml(u.departamento) + '</small>' : '') + '</span></td>' +
-          '<td><span class="role-badge ' + u.role + '">' + (isAdmin ? 'Admin' : 'Usuário') + '</span></td>' +
-          '<td><span class="data-text">' + formatarData(u.criadoEm) + '</span></td>' +
-          '<td><span class="data-text">' + formatarData(u.ultimoLogin) + '</span></td>' +
-          '<td><span class="status-badge ' + (u.ativo ? 'ativo' : 'inativo') + '">' + (u.ativo ? 'Ativo' : 'Inativo') + '</span></td>' +
-          '<td><div class="actions-cell">' + btnAdmin + btnStatus + btnEditProf + btnExcluir + '</div></td>' +
-        '</tr>';
-      }).join('');
-    }
-
-    function escHtml(str) {
-      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    }
-
-    // ── Ações ─────────────────────────────────────────────────────────────────
-    function toggleAdmin(userId) {
-      var usuarios = dbGetUsuarios();
-      var u = usuarios.find(function(x) { return x.id === userId; });
-      if (!u) return;
-      var novoRole = u.role === 'admin' ? 'user' : 'admin';
-      dbAtualizarRole(userId, novoRole);
-      mostrarToast(u.nome + ' agora é ' + (novoRole === 'admin' ? 'admin' : 'usuário comum') + '.');
-      render();
-    }
-
-    function toggleStatus(userId, ativar) {
-      var usuarios = dbGetUsuarios();
-      var u = usuarios.find(function(x) { return x.id === userId; });
-      if (!u) return;
-      if (ativar) {
-        dbReativarUsuario(userId);
-        mostrarToast(u.nome + ' foi reativado.');
-      } else {
-        dbDesativarUsuario(userId);
-        mostrarToast(u.nome + ' foi desativado.');
-      }
-      render();
-    }
-
-    function excluirUsuario(userId, nome) {
-      if (!confirm('Excluir permanentemente o usuário "' + nome + '"?\n\nEsta ação não pode ser desfeita.')) return;
-      dbExcluirUsuario(userId);
-      mostrarToast(nome + ' foi excluído permanentemente.');
-      render();
-    }
-
-    // ── Eventos ───────────────────────────────────────────────────────────────
-    document.getElementById('searchInput').addEventListener('input', render);
-    document.getElementById('filterSelect').addEventListener('change', render);
-
-    document.querySelectorAll('thead th[data-col]').forEach(function(th) {
-      th.addEventListener('click', function() {
-        var col = this.dataset.col;
-        if (sortCol === col) { sortAsc = !sortAsc; }
-        else { sortCol = col; sortAsc = true; }
-        render();
-      });
-    });
-
-    function abrirModalProfissional(userId) {
-      var usuarios = dbGetUsuarios();
-      var u = usuarios.find(function(x) { return x.id === userId; });
-      if (!u) return;
-      document.getElementById('profUserId').value = userId;
-      document.getElementById('profCargo').value = u.cargo || '';
-      document.getElementById('profDepto').value = u.departamento || '';
-      document.getElementById('profAdmissao').value = u.dataAdmissao || '';
-      document.getElementById('profRegime').value = u.regimeTrabalho || '';
-      document.getElementById('modalProfissional').style.display = 'flex';
-    }
-
-    function fecharModalProfissional() {
-      document.getElementById('modalProfissional').style.display = 'none';
-    }
-
-    function salvarProfissional() {
-      var userId = document.getElementById('profUserId').value;
-      dbAtualizarDadosProfissionais(userId, {
-        cargo:         document.getElementById('profCargo').value.trim(),
-        departamento:  document.getElementById('profDepto').value.trim(),
-        dataAdmissao:  document.getElementById('profAdmissao').value,
-        regimeTrabalho:document.getElementById('profRegime').value
-      });
-      fecharModalProfissional();
-      mostrarToast('Dados profissionais atualizados.');
-      render();
-    }
-
-    // ── Criar usuário ──────────────────────────────────────────────────────
-    function abrirModalCriarUsuario() {
-      document.getElementById('novoNome').value = '';
-      document.getElementById('novoEmail').value = '';
-      document.getElementById('novoSenha').value = '';
-      document.getElementById('modalCriarUsuario').style.display = 'flex';
-    }
-    function fecharModalCriarUsuario() {
-      document.getElementById('modalCriarUsuario').style.display = 'none';
-    }
-    function criarNovoUsuario() {
-      var nome  = document.getElementById('novoNome').value.trim();
-      var email = document.getElementById('novoEmail').value.trim();
-      var senha = document.getElementById('novoSenha').value;
-      if (!nome)  { alert('Informe o nome.'); return; }
-      if (!email) { alert('Informe o e-mail.'); return; }
-      if (!senha || senha.length < 6) { alert('A senha deve ter no mínimo 6 caracteres.'); return; }
-      var res = dbAdminCriarUsuario(nome, email, senha);
-      if (res === 'EMAIL_JA_CADASTRADO') { alert('Este e-mail já está cadastrado.'); return; }
-      if (res === 'SENHA_FRACA') { alert('Senha muito fraca (mín. 6 caracteres).'); return; }
-      fecharModalCriarUsuario();
-      mostrarToast('Usuário "' + nome + '" criado com sucesso.');
-      render();
-    }
-
-    // Render inicial
-    render();
-  </script>
 
   <!-- Modal criar usuário -->
   <div id="modalCriarUsuario" style="display:none;position:fixed;inset:0;background:rgba(43,36,34,.5);z-index:1000;align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)fecharModalCriarUsuario()">
@@ -563,5 +339,231 @@
     </div>
   </div>
 
+  <script>
+    (async function() {
+      // Só admin pode acessar
+      await dbVerificarAdmin();
+
+      // Preenche header
+      var sessao = dbGetSessao();
+      if (sessao) {
+        var elNome   = document.getElementById('userName');
+        var elAvatar = document.getElementById('userAvatar');
+        if (elNome)   elNome.textContent   = sessao.nome;
+        if (elAvatar) elAvatar.textContent = sessao.nome.charAt(0).toUpperCase();
+      }
+
+      window.logout = async function() {
+        await dbEncerrarSessao();
+      };
+
+      // ── Estado local ──
+      var sessaoAtual = dbGetSessao();
+      var sortCol  = 'criadoEm';
+      var sortAsc  = false;
+
+      // ── Helpers ──
+      function formatarData(iso) {
+        if (!iso) return '—';
+        var d = new Date(iso);
+        return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      }
+
+      function mostrarToast(msg) {
+        var t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('show');
+        setTimeout(function() { t.classList.remove('show'); }, 2800);
+      }
+
+      function escHtml(str) {
+        return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      }
+
+      // ── Render ──
+      var _cachedUsers = [];
+
+      async function render() {
+        var todos = await dbGetUsuarios();
+        _cachedUsers = todos;
+        var busca    = document.getElementById('searchInput').value.trim().toLowerCase();
+        var filtro   = document.getElementById('filterSelect').value;
+
+        // Stats
+        document.getElementById('statTotal').textContent     = todos.length;
+        document.getElementById('statAtivos').textContent    = todos.filter(function(u) { return u.ativo; }).length;
+        document.getElementById('statAdmins').textContent    = todos.filter(function(u) { return u.role === 'admin'; }).length;
+        document.getElementById('statLicenciados').textContent = Object.keys(EMAILS_LICENCIADOS).length;
+
+        // Filtro
+        var lista = todos.filter(function(u) {
+          var matchBusca = !busca ||
+            u.nome.toLowerCase().includes(busca) ||
+            u.email.toLowerCase().includes(busca);
+
+          var matchFiltro = filtro === 'todos' ||
+            (filtro === 'admin'   && u.role === 'admin') ||
+            (filtro === 'user'    && u.role === 'user'  && u.ativo) ||
+            (filtro === 'inativo' && !u.ativo);
+
+          return matchBusca && matchFiltro;
+        });
+
+        // Ordenação
+        lista.sort(function(a, b) {
+          var va = a[sortCol] || '';
+          var vb = b[sortCol] || '';
+          if (va < vb) return sortAsc ?  -1 : 1;
+          if (va > vb) return sortAsc ?   1 : -1;
+          return 0;
+        });
+
+        var tbody = document.getElementById('usersTableBody');
+        if (lista.length === 0) {
+          tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Nenhum usuário encontrado.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = lista.map(function(u) {
+          var isMe      = u.id === sessaoAtual.id;
+          var isAdmin   = u.role === 'admin';
+          var avatarClass = isAdmin ? 'mini-avatar admin-avatar' : 'mini-avatar';
+          var inicial   = u.nome.charAt(0).toUpperCase();
+
+          var btnAdmin = isMe
+            ? '<span style="font-size:11px;color:var(--cor-texto-claro);font-family:var(--fonte-secundaria)">você</span>'
+            : isAdmin
+              ? '<button class="btn-action btn-toggle-admin remover" onclick="toggleAdmin(\x27' + u.id + '\x27)">Remover admin</button>'
+              : '<button class="btn-action btn-toggle-admin" onclick="toggleAdmin(\x27' + u.id + '\x27)">Tornar admin</button>';
+
+          var btnStatus = isMe ? '' : u.ativo
+            ? '<button class="btn-action btn-toggle-status" onclick="toggleStatus(\x27' + u.id + '\x27, false)">Desativar</button>'
+            : '<button class="btn-action btn-toggle-status reativar" onclick="toggleStatus(\x27' + u.id + '\x27, true)">Reativar</button>';
+
+          var btnExcluir = isMe ? '' : '<button class="btn-action btn-excluir" onclick="excluirUsuario(\x27' + u.id + '\x27, \x27' + u.nome.replace(/'/g,'') + '\x27)">Excluir</button>';
+
+          var cargoText = u.cargo ? escHtml(u.cargo) : '<span style="color:var(--cor-texto-claro);font-style:italic">—</span>';
+          var btnEditProf = '<button class="btn-action" style="background:rgba(110,170,191,0.15);color:#1f6278;border:1px solid rgba(110,170,191,0.3)" onclick="abrirModalProfissional(\x27' + u.id + '\x27)">Editar cargo</button>';
+          return '<tr>' +
+            '<td>' +
+              '<div class="user-cell">' +
+                '<div class="' + avatarClass + '">' + inicial + '</div>' +
+                '<div class="user-cell-info">' +
+                  '<div class="user-name" style="cursor:pointer;color:var(--color-warm-intention)" onclick="abrirModalProfissional(\x27' + u.id + '\x27)" title="Editar dados profissionais">' + escHtml(u.nome) + '</div>' +
+                  '<div class="user-email">' + escHtml(u.email) + '</div>' +
+                '</div>' +
+              '</div>' +
+            '</td>' +
+            '<td><span class="data-text">' + cargoText + (u.departamento ? '<br><small style="color:var(--cor-texto-claro)">' + escHtml(u.departamento) + '</small>' : '') + '</span></td>' +
+            '<td><span class="role-badge ' + u.role + '">' + (isAdmin ? 'Admin' : 'Usuário') + '</span></td>' +
+            '<td><span class="data-text">' + formatarData(u.criadoEm) + '</span></td>' +
+            '<td><span class="data-text">' + formatarData(u.ultimoLogin) + '</span></td>' +
+            '<td><span class="status-badge ' + (u.ativo ? 'ativo' : 'inativo') + '">' + (u.ativo ? 'Ativo' : 'Inativo') + '</span></td>' +
+            '<td><div class="actions-cell">' + btnAdmin + btnStatus + btnEditProf + btnExcluir + '</div></td>' +
+          '</tr>';
+        }).join('');
+      }
+
+      // ── Ações (expostas globalmente) ──
+      window.toggleAdmin = async function(userId) {
+        var u = _cachedUsers.find(function(x) { return x.id === userId; });
+        if (!u) return;
+        var novoRole = u.role === 'admin' ? 'user' : 'admin';
+        await dbAtualizarRole(userId, novoRole);
+        mostrarToast(u.nome + ' agora é ' + (novoRole === 'admin' ? 'admin' : 'usuário comum') + '.');
+        await render();
+      };
+
+      window.toggleStatus = async function(userId, ativar) {
+        var u = _cachedUsers.find(function(x) { return x.id === userId; });
+        if (!u) return;
+        if (ativar) {
+          await dbReativarUsuario(userId);
+          mostrarToast(u.nome + ' foi reativado.');
+        } else {
+          await dbDesativarUsuario(userId);
+          mostrarToast(u.nome + ' foi desativado.');
+        }
+        await render();
+      };
+
+      window.excluirUsuario = async function(userId, nome) {
+        if (!confirm('Excluir permanentemente o usuário "' + nome + '"?\n\nEsta ação não pode ser desfeita.')) return;
+        await dbExcluirUsuario(userId);
+        mostrarToast(nome + ' foi excluído permanentemente.');
+        await render();
+      };
+
+      // ── Eventos ──
+      document.getElementById('searchInput').addEventListener('input', function() { render(); });
+      document.getElementById('filterSelect').addEventListener('change', function() { render(); });
+
+      document.querySelectorAll('thead th[data-col]').forEach(function(th) {
+        th.addEventListener('click', function() {
+          var col = this.dataset.col;
+          if (sortCol === col) { sortAsc = !sortAsc; }
+          else { sortCol = col; sortAsc = true; }
+          render();
+        });
+      });
+
+      window.abrirModalProfissional = function(userId) {
+        var u = _cachedUsers.find(function(x) { return x.id === userId; });
+        if (!u) return;
+        document.getElementById('profUserId').value = userId;
+        document.getElementById('profCargo').value = u.cargo || '';
+        document.getElementById('profDepto').value = u.departamento || '';
+        document.getElementById('profAdmissao').value = u.dataAdmissao || '';
+        document.getElementById('profRegime').value = u.regimeTrabalho || '';
+        document.getElementById('modalProfissional').style.display = 'flex';
+      };
+
+      window.fecharModalProfissional = function() {
+        document.getElementById('modalProfissional').style.display = 'none';
+      };
+
+      window.salvarProfissional = async function() {
+        var userId = document.getElementById('profUserId').value;
+        await dbAtualizarDadosProfissionais(userId, {
+          cargo:         document.getElementById('profCargo').value.trim(),
+          departamento:  document.getElementById('profDepto').value.trim(),
+          dataAdmissao:  document.getElementById('profAdmissao').value,
+          regimeTrabalho:document.getElementById('profRegime').value
+        });
+        fecharModalProfissional();
+        mostrarToast('Dados profissionais atualizados.');
+        await render();
+      };
+
+      // ── Criar usuário ──
+      window.abrirModalCriarUsuario = function() {
+        document.getElementById('novoNome').value = '';
+        document.getElementById('novoEmail').value = '';
+        document.getElementById('novoSenha').value = '';
+        document.getElementById('modalCriarUsuario').style.display = 'flex';
+      };
+      window.fecharModalCriarUsuario = function() {
+        document.getElementById('modalCriarUsuario').style.display = 'none';
+      };
+      window.criarNovoUsuario = async function() {
+        var nome  = document.getElementById('novoNome').value.trim();
+        var email = document.getElementById('novoEmail').value.trim();
+        var senha = document.getElementById('novoSenha').value;
+        if (!nome)  { alert('Informe o nome.'); return; }
+        if (!email) { alert('Informe o e-mail.'); return; }
+        if (!senha || senha.length < 6) { alert('A senha deve ter no mínimo 6 caracteres.'); return; }
+        var res = await dbAdminCriarUsuario(nome, email, senha);
+        if (res === 'EMAIL_JA_CADASTRADO') { alert('Este e-mail já está cadastrado.'); return; }
+        if (res === 'SENHA_FRACA') { alert('Senha muito fraca (mín. 6 caracteres).'); return; }
+        if (typeof res === 'string') { alert('Erro ao criar usuário. Tente novamente.'); return; }
+        fecharModalCriarUsuario();
+        mostrarToast('Usuário "' + nome + '" criado com sucesso.');
+        await render();
+      };
+
+      // Render inicial
+      await render();
+    })();
+  </script>
 </body>
 </html>

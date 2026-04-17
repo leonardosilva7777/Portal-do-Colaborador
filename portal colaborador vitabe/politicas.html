@@ -81,11 +81,13 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="db.js"></script>
   <script src="data.js"></script>
   <script src="content.js"></script>
   <script>
-    dbVerificarAcesso();
+    (async function() {
+    await dbVerificarAcesso();
     (function () {
       var s = dbGetSessao(); var n = s ? s.nome : 'Colaborador';
       document.getElementById('userName').textContent = n;
@@ -95,18 +97,18 @@
         document.querySelectorAll('.nav-admin-only').forEach(function(el) { el.style.display = ''; });
       }
     })();
-    function logout() { dbEncerrarSessao(); }
+    window.logout = async function() { await dbEncerrarSessao(); };
 
-    function escHtml(str) {
+    window.escHtml = function(str) {
       return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
 
-    function togglePolitica(id) {
+    window.togglePolitica = function(id) {
       var item = document.getElementById('pol_' + id);
       if (item) item.classList.toggle('open');
     }
 
-    function renderPoliticas() {
+    window.renderPoliticas = function() {
       var lista = dbGetPoliticas();
       var cont = document.getElementById('listaPoliticas');
       var vazio = document.getElementById('politicasVazio');
@@ -140,13 +142,13 @@
       }).join('');
     }
 
-    function excluirPolitica(id) {
+    window.excluirPolitica = function(id) {
       if (!confirm('Excluir esta política?')) return;
       dbExcluirPolitica(id);
       renderPoliticas();
     }
 
-    function editarPolitica(id) {
+    window.editarPolitica = function(id) {
       var lista = dbGetPoliticas();
       var p = lista.find(function(x) { return x.id === id; });
       if (!p) return;
@@ -157,7 +159,7 @@
       document.getElementById('modalPolitica').style.display = 'flex';
     }
 
-    function abrirModalPolitica() {
+    window.abrirModalPolitica = function() {
       document.getElementById('pEditId').value = '';
       document.getElementById('pTitulo').value = '';
       document.getElementById('pConteudo').value = '';
@@ -165,11 +167,11 @@
       document.getElementById('modalPolitica').style.display = 'flex';
     }
 
-    function fecharModalPolitica() {
+    window.fecharModalPolitica = function() {
       document.getElementById('modalPolitica').style.display = 'none';
     }
 
-    function salvarPolitica() {
+    window.salvarPolitica = function() {
       var titulo   = document.getElementById('pTitulo').value.trim();
       var conteudo = document.getElementById('pConteudo').value.trim();
       var editId   = document.getElementById('pEditId').value;
@@ -184,6 +186,7 @@
     }
 
     renderPoliticas();
+      })();
   </script>
 </body>
 </html>

@@ -3,10 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
-  <meta http-equiv="Pragma" content="no-cache"/>
-  <meta http-equiv="Expires" content="0"/>
-  <title>Entrar — Portal do Colaborador Renova Be</title>
+  <title>Esqueci minha senha — Portal do Colaborador Renova Be</title>
 
   <style>
     @font-face {
@@ -62,7 +59,6 @@
       align-items: stretch;
     }
 
-    /* Painel esquerdo — marca */
     .brand-panel {
       flex: 1;
       background: var(--warm);
@@ -103,7 +99,6 @@
       position: relative; z-index: 1;
     }
 
-    /* Painel direito — formulário */
     .form-panel {
       width: 440px; min-width: 320px;
       background: var(--white);
@@ -145,7 +140,7 @@
       font-family: var(--font-b); font-size: 14px;
       padding: 12px 16px; border-radius: 8px; margin-bottom: 18px; display: none;
     }
-    .alert.show { display: block; animation: shake 0.4s ease; }
+    .alert.show { display: block; }
     .alert-error  { background: var(--err-bg); color: var(--err); border: 1px solid var(--err); }
     .alert-success{ background: var(--ok-bg); color: var(--ok-text); border: 1px solid var(--ok-border); }
 
@@ -160,6 +155,7 @@
     }
     .btn-submit:hover  { opacity: 0.88; transform: translateY(-1px); }
     .btn-submit:active { transform: translateY(0); }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
     .form-link {
       text-align: center; margin-top: 22px;
@@ -174,6 +170,19 @@
       font-family: var(--font-b); margin-top: 32px;
       font-size: 12px; color: var(--faint); text-align: center;
     }
+
+    .step { display: none; }
+    .step.active { display: block; }
+
+    .step-indicator {
+      display: flex; gap: 8px; margin-bottom: 24px;
+    }
+    .step-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--border); transition: background 0.3s;
+    }
+    .step-dot.active { background: var(--warm); }
+    .step-dot.done   { background: var(--ok-border); }
 
     @keyframes shake {
       0%, 100% { transform: translateX(0); }
@@ -199,41 +208,63 @@
       onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
     />
     <span class="brand-logo-fallback">RENOVA BE</span>
-    <p class="brand-tagline">Ciclos que renovam.<br/>Conquistas que inspiram.</p>
-    <p class="brand-sub">Seu espaço para crescer, cuidar e evoluir com a gente.</p>
+    <p class="brand-tagline">Recupere seu<br/>acesso.</p>
+    <p class="brand-sub">Vamos te ajudar a redefinir sua senha em poucos passos.</p>
   </div>
 
   <div class="form-panel">
-    <h1 class="form-title">Portal do<br/>Colaborador</h1>
-    <p class="form-subtitle">Faça login para acessar seu espaço.</p>
+    <h1 class="form-title">Esqueci<br/>minha senha</h1>
 
-    <div id="alertMsg" class="alert alert-error" role="alert"></div>
+    <div class="step-indicator">
+      <div class="step-dot active" id="dot1"></div>
+      <div class="step-dot" id="dot2"></div>
+      <div class="step-dot" id="dot3"></div>
+    </div>
 
-    <form id="loginForm" novalidate>
-      <div class="form-group">
-        <label for="email">E-mail corporativo</label>
-        <input
-          type="email" id="email" name="email"
-          placeholder="seunome@vitabe.com.br"
-          required autocomplete="email"
-        />
-      </div>
-      <div class="form-group">
-        <label for="senha">Senha</label>
-        <input
-          type="password" id="senha" name="senha"
-          placeholder="Sua senha"
-          required autocomplete="current-password"
-        />
-      </div>
-      <button type="submit" class="btn-submit">Entrar</button>
-    </form>
+    <div id="alertMsg" class="alert" role="alert"></div>
+
+    <!-- Etapa 1: Email -->
+    <div class="step active" id="step1">
+      <p class="form-subtitle">Informe seu e-mail corporativo para receber o código de verificação.</p>
+      <form id="formEmail" novalidate>
+        <div class="form-group">
+          <label for="email">E-mail corporativo</label>
+          <input type="email" id="email" placeholder="seunome@vitabe.com.br" required autocomplete="email" />
+        </div>
+        <button type="submit" class="btn-submit" id="btnEnviar">Enviar código</button>
+      </form>
+    </div>
+
+    <!-- Etapa 2: Código OTP -->
+    <div class="step" id="step2">
+      <p class="form-subtitle">Digite o código enviado para <strong id="emailDisplay"></strong>.</p>
+      <form id="formCodigo" novalidate>
+        <div class="form-group">
+          <label for="codigo">Código de verificação</label>
+          <input type="text" id="codigo" placeholder="Digite o código recebido" required autocomplete="one-time-code" inputmode="numeric" maxlength="8" />
+        </div>
+        <button type="submit" class="btn-submit" id="btnVerificar">Verificar código</button>
+      </form>
+    </div>
+
+    <!-- Etapa 3: Nova senha -->
+    <div class="step" id="step3">
+      <p class="form-subtitle">Defina sua nova senha.</p>
+      <form id="formSenha" novalidate>
+        <div class="form-group">
+          <label for="novaSenha">Nova senha</label>
+          <input type="password" id="novaSenha" placeholder="Mínimo 6 caracteres" required autocomplete="new-password" />
+        </div>
+        <div class="form-group">
+          <label for="confirmarSenha">Confirmar nova senha</label>
+          <input type="password" id="confirmarSenha" placeholder="Repita a nova senha" required autocomplete="new-password" />
+        </div>
+        <button type="submit" class="btn-submit" id="btnRedefinir">Redefinir senha</button>
+      </form>
+    </div>
 
     <p class="form-link">
-      Primeiro acesso? <a href="cadastro.html">Criar conta</a>
-    </p>
-    <p class="form-link" style="margin-top:10px">
-      <a href="esqueci-senha.html">Esqueci minha senha</a>
+      Lembrou a senha? <a href="login.html">Voltar ao login</a>
     </p>
 
     <p class="form-footer">© 2026 Renova Be — Todos os direitos reservados</p>
@@ -243,62 +274,114 @@
   <script src="db.js"></script>
   <script>
     (async function() {
-      // Se já está logado, redireciona
-      await dbInit();
-      if (dbGetSessao()) {
-        window.location.href = 'index.html';
-        return;
-      }
-
-      var form     = document.getElementById('loginForm');
       var alertMsg = document.getElementById('alertMsg');
+      var emailParaReset = '';
 
-      function mostrarErro(msg) {
+      function mostrarAlerta(tipo, msg) {
         alertMsg.textContent = msg;
-        alertMsg.className = 'alert alert-error show';
+        alertMsg.className = 'alert alert-' + tipo + ' show';
+      }
+      function limparAlerta() {
+        alertMsg.className = 'alert';
       }
 
-      form.addEventListener('submit', async function(e) {
+      function irParaEtapa(n) {
+        document.querySelectorAll('.step').forEach(function(el) { el.classList.remove('active'); });
+        document.getElementById('step' + n).classList.add('active');
+        document.getElementById('dot1').className = 'step-dot' + (n >= 1 ? ' active' : '');
+        document.getElementById('dot2').className = 'step-dot' + (n >= 2 ? ' active' : '') + (n > 2 ? ' done' : '');
+        document.getElementById('dot3').className = 'step-dot' + (n >= 3 ? ' active' : '');
+        if (n < 3) {
+          document.getElementById('dot' + (n)).className = 'step-dot active';
+        }
+        // Mark previous steps as done
+        for (var i = 1; i < n; i++) {
+          document.getElementById('dot' + i).className = 'step-dot done';
+        }
+        limparAlerta();
+      }
+
+      // Etapa 1: Enviar código
+      document.getElementById('formEmail').addEventListener('submit', async function(e) {
         e.preventDefault();
-        alertMsg.className = 'alert alert-error';
-
+        limparAlerta();
         var email = document.getElementById('email').value.trim();
-        var senha = document.getElementById('senha').value;
+        if (!email) { mostrarAlerta('error', 'Informe seu e-mail.'); return; }
 
-        if (!email || !senha) {
-          mostrarErro('Preencha e-mail e senha.');
-          return;
-        }
-
-        var btn = form.querySelector('.btn-submit');
+        var btn = document.getElementById('btnEnviar');
         btn.disabled = true;
-        btn.textContent = 'Entrando…';
+        btn.textContent = 'Enviando…';
 
-        var resultado = await dbLogin(email, senha);
+        var resultado = await dbSolicitarReset(email);
 
-        if (resultado === 'CREDENCIAIS_INVALIDAS') {
-          mostrarErro('E-mail ou senha incorretos. Verifique e tente novamente.');
+        if (resultado === 'ERRO_ENVIO') {
+          mostrarAlerta('error', 'Não foi possível enviar o código. Verifique o e-mail e tente novamente.');
           btn.disabled = false;
-          btn.textContent = 'Entrar';
-          document.getElementById('senha').value = '';
-          document.getElementById('senha').focus();
-          return;
-        }
-        if (resultado === 'USUARIO_INATIVO') {
-          mostrarErro('Sua conta está inativa. Entre em contato com o G&G.');
-          btn.disabled = false;
-          btn.textContent = 'Entrar';
-          return;
-        }
-        if (typeof resultado === 'string') {
-          mostrarErro('Erro ao fazer login. Tente novamente.');
-          btn.disabled = false;
-          btn.textContent = 'Entrar';
+          btn.textContent = 'Enviar código';
           return;
         }
 
-        // Login bem-sucedido
-        window.location.href = 'index.html';
+        emailParaReset = email;
+        document.getElementById('emailDisplay').textContent = email;
+        irParaEtapa(2);
+        document.getElementById('codigo').focus();
+      });
+
+      // Etapa 2: Verificar código
+      document.getElementById('formCodigo').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        limparAlerta();
+        var codigo = document.getElementById('codigo').value.trim();
+        if (!codigo) { mostrarAlerta('error', 'Digite o código recebido por e-mail.'); return; }
+
+        var btn = document.getElementById('btnVerificar');
+        btn.disabled = true;
+        btn.textContent = 'Verificando…';
+
+        var resultado = await dbVerificarCodigoReset(emailParaReset, codigo);
+
+        if (resultado === 'CODIGO_INVALIDO') {
+          mostrarAlerta('error', 'Código inválido ou expirado. Verifique e tente novamente.');
+          btn.disabled = false;
+          btn.textContent = 'Verificar código';
+          return;
+        }
+
+        irParaEtapa(3);
+        document.getElementById('novaSenha').focus();
+      });
+
+      // Etapa 3: Nova senha
+      document.getElementById('formSenha').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        limparAlerta();
+        var senha = document.getElementById('novaSenha').value;
+        var confirmar = document.getElementById('confirmarSenha').value;
+
+        if (!senha || senha.length < 6) {
+          mostrarAlerta('error', 'A senha deve ter no mínimo 6 caracteres.');
+          return;
+        }
+        if (senha !== confirmar) {
+          mostrarAlerta('error', 'As senhas não coincidem.');
+          return;
+        }
+
+        var btn = document.getElementById('btnRedefinir');
+        btn.disabled = true;
+        btn.textContent = 'Redefinindo…';
+
+        var resultado = await dbRedefinirSenha(senha);
+
+        if (resultado === 'ERRO_REDEFINIR') {
+          mostrarAlerta('error', 'Erro ao redefinir a senha. Tente novamente.');
+          btn.disabled = false;
+          btn.textContent = 'Redefinir senha';
+          return;
+        }
+
+        mostrarAlerta('success', 'Senha redefinida com sucesso! Redirecionando para o login…');
+        setTimeout(function() { window.location.href = 'login.html'; }, 2000);
       });
 
       document.getElementById('email').focus();

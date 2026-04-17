@@ -183,11 +183,13 @@
 
   
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="db.js"></script>
   <script src="data.js"></script>
   <script src="content.js"></script>
   <script>
-    dbVerificarAcesso();
+    (async function() {
+    await dbVerificarAcesso();
     (function () {
       var s = dbGetSessao(); var n = s ? s.nome : 'Colaborador';
       document.getElementById('userName').textContent = n;
@@ -198,7 +200,7 @@
         document.querySelectorAll('.nav-admin-only').forEach(function(el) { el.style.display = ''; });
       }
     })();
-    function logout() { dbEncerrarSessao(); }
+    window.logout = async function() { await dbEncerrarSessao(); };
 
     document.getElementById('faleForm').addEventListener('submit', function (e) {
       e.preventDefault();
@@ -211,6 +213,7 @@
       this.reset();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
+      })();
   </script>
 
 </body>
