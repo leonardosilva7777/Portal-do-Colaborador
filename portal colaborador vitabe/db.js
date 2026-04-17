@@ -1,19 +1,24 @@
 /**
  * db.js — Portal do Colaborador Renova Be
- * Gerenciamento de usuários, sessões e validação de e-mails licenciados.
- * Armazenamento: localStorage (persist entre sessões) + sessionStorage (sessão ativa).
+ * Autenticação via Supabase Auth + tabela profiles.
+ * Dados de comunicados, eventos, etc. continuam em localStorage (data.js).
  */
 
 'use strict';
 
+// ── SUPABASE CLIENT ──────────────────────────────────────────────────────────
+var SUPABASE_URL  = 'https://gkegzvoncwcwzrsyigco.supabase.co';
+var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrZWd6dm9uY3djd3pyc3lpZ2NvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MzQ2MzEsImV4cCI6MjA5MjAxMDYzMX0.Ia9Q4gkka5jzWWDo_amJ8HGN6BxxDuCjIJ20CaNPqsk';
+
+var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
 // ── E-MAILS COM ACESSO ADMIN AUTOMÁTICO ──────────────────────────────────────
-const ADMIN_EMAILS = [
+var ADMIN_EMAILS = [
   'leonardo.silva@vitabe.com.br'
 ];
 
 // ── EMAILS LICENCIADOS ─────────────────────────────────────────────────────────
-// Fonte: pessoas_licenciadas.csv — somente esses e-mails podem criar conta.
-const EMAILS_LICENCIADOS = {
+var EMAILS_LICENCIADOS = {
   '100pesocha@vitabe.com.br': '100 Pesocha',
   '100medida.adriana@vitabe.com.br': 'Adriana 100medida',
   '100peso.adriana@vitabe.com.br': 'Adriana 100peso',
@@ -190,245 +195,358 @@ const EMAILS_LICENCIADOS = {
   'ygor.batista@vitabe.com.br': 'Ygor Batista'
 };
 
-// ── CHAVES DE ARMAZENAMENTO ────────────────────────────────────────────────────
-const CHAVE_USUARIOS  = 'portal_rb_usuarios';
-const CHAVE_SESSAO    = 'portal_rb_sessao';
+// ── CACHE LOCAL DA SESSÃO ──────────────────────────────────────────────────────
+var _sessaoCache = null;
 
-// ── HELPERS ────────────────────────────────────────────────────────────────────
+// ── INICIALIZAÇÃO ──────────────────────────────────────────────────────────────
 
-/** Gera um ID único simples */
-function gerarId() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+/** Carrega sessão existente do Supabase e popula cache local */
+async function dbInit() {
+  var { data: { session } } = await supabase.auth.getSession();
+  if (session && session.user) {
+    var { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', session.user.id)
+      .single();
+
+    if (profile) {
+      _sessaoCache = {
+        id:    profile.id,
+        nome:  profile.nome,
+        email: profile.email,
+        role:  profile.role
+      };
+    }
+  }
+  return _sessaoCache;
 }
 
-/** Codificação simples de senha (não substitui hash real em produção) */
-function codificarSenha(senha) {
-  return btoa(unescape(encodeURIComponent(senha)));
+// ── SESSÃO ────────────────────────────────────────────────────────────────────
+
+/** Retorna sessão do cache local (sync) */
+function dbGetSessao() {
+  return _sessaoCache;
 }
 
-function verificarSenhaCodificada(senha, codificada) {
-  return codificarSenha(senha) === codificada;
-}
-
-// ── USUÁRIOS ──────────────────────────────────────────────────────────────────
-
-/** Retorna todos os usuários cadastrados */
-function dbGetUsuarios() {
-  try {
-    return JSON.parse(localStorage.getItem(CHAVE_USUARIOS) || '[]');
-  } catch (e) {
-    return [];
+/** Verifica acesso — redireciona para login se não há sessão */
+async function dbVerificarAcesso() {
+  if (!_sessaoCache) {
+    await dbInit();
+  }
+  if (!_sessaoCache) {
+    window.location.href = 'login.html';
   }
 }
 
-/** Persiste a lista de usuários */
-function dbSalvarUsuarios(usuarios) {
-  localStorage.setItem(CHAVE_USUARIOS, JSON.stringify(usuarios));
+/** Verifica se é admin — redireciona se não */
+async function dbVerificarAdmin() {
+  if (!_sessaoCache) {
+    await dbInit();
+  }
+  if (!_sessaoCache || _sessaoCache.role !== 'admin') {
+    window.location.href = 'index.html';
+  }
 }
 
-/** Busca usuário pelo e-mail (case-insensitive) */
-function dbGetUsuarioPorEmail(email) {
-  var e = email.trim().toLowerCase();
-  return dbGetUsuarios().find(function(u) { return u.email.toLowerCase() === e; }) || null;
+/** Retorna true se o usuário logado for admin (sync, usa cache) */
+function dbIsAdmin() {
+  return _sessaoCache && _sessaoCache.role === 'admin';
 }
+
+/** Encerra sessão */
+async function dbEncerrarSessao() {
+  await supabase.auth.signOut();
+  _sessaoCache = null;
+  window.location.href = 'login.html';
+}
+
+// ── LOGIN ─────────────────────────────────────────────────────────────────────
 
 /**
- * Cria um novo usuário.
- * @returns {object|string} usuário criado ou string de erro
+ * Login com e-mail e senha.
+ * @returns {object|string} dados do perfil ou código de erro
  */
-function dbAdminCriarUsuario(nome, email, senha) {
+async function dbLogin(email, senha) {
   var emailNorm = email.trim().toLowerCase();
-  if (dbGetUsuarioPorEmail(emailNorm)) return 'EMAIL_JA_CADASTRADO';
-  if (!senha || senha.length < 6) return 'SENHA_FRACA';
-  var usuarios = dbGetUsuarios();
-  var novoUsuario = {
-    id: gerarId(), nome: nome.trim(), email: emailNorm,
-    senha: codificarSenha(senha), role: 'user',
-    criadoEm: new Date().toISOString(), ultimoLogin: null, ativo: true
+
+  var { data, error } = await supabase.auth.signInWithPassword({
+    email: emailNorm,
+    password: senha
+  });
+
+  if (error) {
+    if (error.message.includes('Invalid login credentials')) {
+      return 'CREDENCIAIS_INVALIDAS';
+    }
+    if (error.message.includes('Email not confirmed')) {
+      return 'EMAIL_NAO_CONFIRMADO';
+    }
+    return 'ERRO_LOGIN';
+  }
+
+  var userId = data.user.id;
+
+  // Buscar perfil
+  var { data: profile, error: profileErr } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', userId)
+    .single();
+
+  if (profileErr || !profile) {    var userMeta = data.user.user_metadata || {};    var ehAdmin = ADMIN_EMAILS.indexOf(emailNorm) !== -1;    var novoNome = userMeta.nome || getNomeLicenciado(emailNorm) || emailNorm.split("@")[0];    var novoRole = ehAdmin ? "admin" : (userMeta.role || "user");    var { data: newProfile, error: insertErr } = await supabase      .from("profiles")      .insert({ id: userId, nome: novoNome, email: emailNorm, role: novoRole })      .select()      .single();    if (insertErr || !newProfile) return "ERRO_CRIAR_PERFIL";    profile = newProfile;
+  }
+
+  if (!profile.ativo) {
+    await supabase.auth.signOut();
+    return 'USUARIO_INATIVO';
+  }
+
+  // Atualizar último login
+  await supabase.from('profiles').update({ ultimo_login: new Date().toISOString() }).eq('id', userId);
+
+  _sessaoCache = {
+    id:    profile.id,
+    nome:  profile.nome,
+    email: profile.email,
+    role:  profile.role
   };
-  usuarios.push(novoUsuario);
-  dbSalvarUsuarios(usuarios);
-  return novoUsuario;
+
+  return _sessaoCache;
 }
 
-function dbCriarUsuario(nome, email, senha) {
+// ── CADASTRO ──────────────────────────────────────────────────────────────────
+
+/**
+ * Cria usuário via signup (self-registration).
+ * @returns {object|string} dados do perfil ou código de erro
+ */
+async function dbCriarUsuario(nome, email, senha) {
   var emailNorm = email.trim().toLowerCase();
 
   if (!emailLicenciado(emailNorm)) {
     return 'EMAIL_NAO_LICENCIADO';
   }
-  if (dbGetUsuarioPorEmail(emailNorm)) {
-    return 'EMAIL_JA_CADASTRADO';
-  }
   if (!senha || senha.length < 6) {
     return 'SENHA_FRACA';
   }
 
-  var usuarios = dbGetUsuarios();
   var ehAdmin = ADMIN_EMAILS.indexOf(emailNorm) !== -1;
 
-  var novoUsuario = {
-    id:          gerarId(),
-    nome:        nome.trim(),
-    email:       emailNorm,
-    senha:       codificarSenha(senha),
-    role:        ehAdmin ? 'admin' : 'user',
-    criadoEm:    new Date().toISOString(),
-    ultimoLogin: null,
-    ativo:       true
-  };
+  var { data, error } = await supabase.auth.signUp({
+    email: emailNorm,
+    password: senha,
+    options: {
+      data: {
+        nome: nome.trim(),
+        role: ehAdmin ? 'admin' : 'user'
+      }
+    }
+  });
 
-  usuarios.push(novoUsuario);
-  dbSalvarUsuarios(usuarios);
-  return novoUsuario;
+  if (error) {
+    if (error.message.includes('already registered') || error.message.includes('already been registered')) {
+      return 'EMAIL_JA_CADASTRADO';
+    }
+    return 'ERRO_CADASTRO';
+  }
+
+  // Supabase com "Confirm email" desativado retorna sessão imediatamente
+  if (data.user) {
+    // Aguardar um instante para o trigger criar o profile
+    await new Promise(function(r) { setTimeout(r, 500); });
+
+    var { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', data.user.id)
+      .single();
+
+    if (profile) {
+      _sessaoCache = {
+        id:    profile.id,
+        nome:  profile.nome,
+        email: profile.email,
+        role:  profile.role
+      };
+      return _sessaoCache;
+    }
+  }
+
+  return 'ERRO_CADASTRO';
 }
 
 /**
- * Valida login: e-mail + senha.
- * @returns {object|string} usuário ou código de erro
+ * Admin cria usuário (sem afetar sessão atual do admin).
+ * Usa um client separado com persistSession: false.
  */
-function dbLogin(email, senha) {
-  var usuario = dbGetUsuarioPorEmail(email);
-  if (!usuario)                               return 'USUARIO_NAO_ENCONTRADO';
-  if (!usuario.ativo)                         return 'USUARIO_INATIVO';
-  if (!verificarSenhaCodificada(senha, usuario.senha)) return 'SENHA_INCORRETA';
+async function dbAdminCriarUsuario(nome, email, senha) {
+  var emailNorm = email.trim().toLowerCase();
 
-  // Atualiza último login
-  var usuarios = dbGetUsuarios();
-  var idx = usuarios.findIndex(function(u) { return u.id === usuario.id; });
-  if (idx !== -1) {
-    usuarios[idx].ultimoLogin = new Date().toISOString();
-    dbSalvarUsuarios(usuarios);
-    usuario = usuarios[idx];
+  if (!senha || senha.length < 6) {
+    return 'SENHA_FRACA';
   }
 
-  return usuario;
+  // Client auxiliar que não persiste sessão (não desloga o admin)
+  var adminClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
+    auth: { persistSession: false }
+  });
+
+  var { data, error } = await adminClient.auth.signUp({
+    email: emailNorm,
+    password: senha,
+    options: {
+      data: {
+        nome: nome.trim(),
+        role: 'user'
+      }
+    }
+  });
+
+  if (error) {
+    if (error.message.includes('already registered') || error.message.includes('already been registered')) {
+      return 'EMAIL_JA_CADASTRADO';
+    }
+    return 'ERRO_CADASTRO';
+  }
+
+  return data.user ? { id: data.user.id, nome: nome.trim(), email: emailNorm } : 'ERRO_CADASTRO';
 }
 
-/** Atualiza o role (admin/user) de um usuário */
-function dbAtualizarRole(userId, novoRole) {
-  var usuarios = dbGetUsuarios();
-  var idx = usuarios.findIndex(function(u) { return u.id === userId; });
-  if (idx === -1) return false;
-  usuarios[idx].role = novoRole;
-  dbSalvarUsuarios(usuarios);
-  return true;
+// ── GESTÃO DE USUÁRIOS (ADMIN) ───────────────────────────────────────────────
+
+/** Retorna todos os profiles (admin only via RLS) */
+async function dbGetUsuarios() {
+  var { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .order('criado_em', { ascending: false });
+
+  if (error) return [];
+
+  // Mapear campos para manter compatibilidade com a UI
+  return data.map(function(p) {
+    return {
+      id:             p.id,
+      nome:           p.nome,
+      email:          p.email,
+      role:           p.role,
+      ativo:          p.ativo,
+      cargo:          p.cargo || '',
+      departamento:   p.departamento || '',
+      dataAdmissao:   p.data_admissao || '',
+      regimeTrabalho: p.regime_trabalho || '',
+      criadoEm:       p.criado_em,
+      ultimoLogin:    p.ultimo_login
+    };
+  });
 }
 
-/** Atualiza dados profissionais de um usuário (cargo, departamento, dataAdmissao, regimeTrabalho) */
-function dbAtualizarDadosProfissionais(userId, dados) {
-  var usuarios = dbGetUsuarios();
-  var idx = usuarios.findIndex(function(u) { return u.id === userId; });
-  if (idx === -1) return false;
-  if (dados.cargo       !== undefined) usuarios[idx].cargo       = dados.cargo;
-  if (dados.departamento!== undefined) usuarios[idx].departamento= dados.departamento;
-  if (dados.dataAdmissao!== undefined) usuarios[idx].dataAdmissao= dados.dataAdmissao;
-  if (dados.regimeTrabalho!==undefined) usuarios[idx].regimeTrabalho = dados.regimeTrabalho;
-  localStorage.setItem(CHAVE_USUARIOS, JSON.stringify(usuarios));
-  return true;
+/** Atualiza o role de um usuário */
+async function dbAtualizarRole(userId, novoRole) {
+  var { error } = await supabase
+    .from('profiles')
+    .update({ role: novoRole })
+    .eq('id', userId);
+  return !error;
 }
 
-/** Remove (desativa) um usuário */
-function dbDesativarUsuario(userId) {
-  var usuarios = dbGetUsuarios();
-  var idx = usuarios.findIndex(function(u) { return u.id === userId; });
-  if (idx === -1) return false;
-  usuarios[idx].ativo = false;
-  dbSalvarUsuarios(usuarios);
-  return true;
+/** Atualiza dados profissionais de um usuário */
+async function dbAtualizarDadosProfissionais(userId, dados) {
+  var updates = {};
+  if (dados.cargo !== undefined)          updates.cargo = dados.cargo;
+  if (dados.departamento !== undefined)   updates.departamento = dados.departamento;
+  if (dados.dataAdmissao !== undefined)   updates.data_admissao = dados.dataAdmissao;
+  if (dados.regimeTrabalho !== undefined) updates.regime_trabalho = dados.regimeTrabalho;
+
+  var { error } = await supabase
+    .from('profiles')
+    .update(updates)
+    .eq('id', userId);
+  return !error;
 }
 
-/** Exclui permanentemente um usuário */
-function dbExcluirUsuario(userId) {
-  var usuarios = dbGetUsuarios();
-  var filtered = usuarios.filter(function(u) { return u.id !== userId; });
-  if (filtered.length === usuarios.length) return false; // não encontrado
-  dbSalvarUsuarios(filtered);
-  return true;
+/** Desativa um usuário */
+async function dbDesativarUsuario(userId) {
+  var { error } = await supabase
+    .from('profiles')
+    .update({ ativo: false })
+    .eq('id', userId);
+  return !error;
 }
 
 /** Reativa um usuário */
-function dbReativarUsuario(userId) {
-  var usuarios = dbGetUsuarios();
-  var idx = usuarios.findIndex(function(u) { return u.id === userId; });
-  if (idx === -1) return false;
-  usuarios[idx].ativo = true;
-  dbSalvarUsuarios(usuarios);
-  return true;
+async function dbReativarUsuario(userId) {
+  var { error } = await supabase
+    .from('profiles')
+    .update({ ativo: true })
+    .eq('id', userId);
+  return !error;
 }
 
-// ── SESSÃO ────────────────────────────────────────────────────────────────────
-
-/** Inicia sessão para o usuário */
-function dbIniciarSessao(usuario) {
-  var sessao = {
-    id:        usuario.id,
-    nome:      usuario.nome,
-    email:     usuario.email,
-    role:      usuario.role,
-    loginTime: Date.now()
-  };
-  sessionStorage.setItem(CHAVE_SESSAO, JSON.stringify(sessao));
-  // Compatibilidade com páginas que leem 'usuarioLogado'
-  sessionStorage.setItem('usuarioLogado', usuario.nome);
-  sessionStorage.setItem('loginTime', sessao.loginTime);
+/** Exclui um usuário (remove profile — auth.users permanece, mas sem profile fica inacessível) */
+async function dbExcluirUsuario(userId) {
+  var { error } = await supabase
+    .from('profiles')
+    .delete()
+    .eq('id', userId);
+  return !error;
 }
 
-/** Retorna a sessão ativa ou null */
-function dbGetSessao() {
-  try {
-    return JSON.parse(sessionStorage.getItem(CHAVE_SESSAO) || 'null');
-  } catch (e) {
-    return null;
-  }
+// ── RESET DE SENHA ───────────────────────────────────────────────────────────
+
+/** Envia OTP por email para reset de senha */
+async function dbSolicitarReset(email) {
+  var emailNorm = email.trim().toLowerCase();
+  var { error } = await supabase.auth.signInWithOtp({
+    email: emailNorm,
+    options: { shouldCreateUser: false }
+  });
+  if (error) return 'ERRO_ENVIO';
+  return 'OK';
 }
 
-/** Encerra sessão */
-function dbEncerrarSessao() {
-  sessionStorage.removeItem(CHAVE_SESSAO);
-  sessionStorage.removeItem('usuarioLogado');
-  sessionStorage.removeItem('loginTime');
+/** Verifica o código OTP recebido por email */
+async function dbVerificarCodigoReset(email, codigo) {
+  var emailNorm = email.trim().toLowerCase();
+  var { data, error } = await supabase.auth.verifyOtp({
+    email: emailNorm,
+    token: codigo,
+    type: 'email'
+  });
+  if (error) return 'CODIGO_INVALIDO';
+  return 'OK';
 }
 
-/** Verifica se há sessão ativa; se não, redireciona para login */
-function dbVerificarAcesso() {
-  if (!dbGetSessao()) {
-    window.location.href = 'login.html';
-  }
-}
-
-/** Verifica se o usuário da sessão é admin; se não, redireciona */
-function dbVerificarAdmin() {
-  var sessao = dbGetSessao();
-  if (!sessao || sessao.role !== 'admin') {
-    window.location.href = 'index.html';
-  }
-}
-
-/** Retorna true se o usuário logado for admin */
-function dbIsAdmin() {
-  var sessao = dbGetSessao();
-  return sessao && sessao.role === 'admin';
+/** Redefine a senha (usuário já autenticado via OTP) */
+async function dbRedefinirSenha(novaSenha) {
+  var { error } = await supabase.auth.updateUser({
+    password: novaSenha
+  });
+  if (error) return 'ERRO_REDEFINIR';
+  // Deslogar após redefinir para forçar novo login
+  await supabase.auth.signOut();
+  _sessaoCache = null;
+  return 'OK';
 }
 
 // ── VALIDAÇÃO DE E-MAIL LICENCIADO ────────────────────────────────────────────
 
-/** Verifica se o e-mail está na lista de pessoas licenciadas */
 function emailLicenciado(email) {
   return Object.prototype.hasOwnProperty.call(EMAILS_LICENCIADOS, email.trim().toLowerCase());
 }
 
-/** Retorna o nome associado ao e-mail licenciado */
 function getNomeLicenciado(email) {
   return EMAILS_LICENCIADOS[email.trim().toLowerCase()] || null;
 }
 
 // ── AUTO-INICIALIZAÇÃO DOM ────────────────────────────────────────────────────
-// Injeta link de "Painel Admin" no dropdown do usuário se o logado for admin.
 document.addEventListener('DOMContentLoaded', function() {
   if (!dbIsAdmin()) return;
   var menu = document.querySelector('.user-dropdown-menu');
   if (!menu) return;
+  var existing = menu.querySelector('a[href="admin.html"]');
+  if (existing) return;
   var link = document.createElement('a');
   link.href = 'admin.html';
   link.textContent = 'Painel Admin';
