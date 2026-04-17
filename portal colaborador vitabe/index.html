@@ -147,11 +147,13 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="db.js"></script>
   <script src="data.js"></script>
   <script src="content.js"></script>
   <script>
-    dbVerificarAcesso();
+    (async function() {
+    await dbVerificarAcesso();
 
     (function () {
       var s = dbGetSessao();
@@ -179,15 +181,15 @@
       }
     })();
 
-    function logout() { dbEncerrarSessao(); }
+    window.logout = async function() { await dbEncerrarSessao(); };
 
-    function escHtml(str) {
+    window.escHtml = function(str) {
       return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
 
     var tagCls = { 'Geral': 'geral', 'Benefícios': 'beneficios', 'TI': 'ti', 'Políticas': '', 'Eventos': '', 'RH': '' };
 
-    function renderComunicados() {
+    window.renderComunicados = function() {
       var lista = dbGetComunicados().slice(0, 4);
       var cont = document.getElementById('comunicadosList');
       if (lista.length === 0) {
@@ -207,12 +209,12 @@
       }).join('');
     }
 
-    function excCom(id, ev) {
+    window.excCom = function(id, ev) {
       ev.stopPropagation();
       if (confirm('Excluir este comunicado?')) { dbExcluirComunicado(id); renderComunicados(); }
     }
 
-    function renderEventos() {
+    window.renderEventos = function() {
       var hoje = new Date().toISOString().slice(0, 10);
       var lista = dbGetEventos().filter(function(e) { return e.dataFim >= hoje; }).slice(0, 5);
       var cont = document.getElementById('eventosList');
@@ -233,19 +235,19 @@
       }).join('');
     }
 
-    function excEv(id, ev) {
+    window.excEv = function(id, ev) {
       ev.stopPropagation();
       if (confirm('Excluir este evento?')) { dbExcluirEvento(id); renderEventos(); }
     }
 
     // Modal comunicado
-    function abrirModalComunicado() { document.getElementById('modalComunicado').style.display = 'flex'; }
-    function fecharModalComunicado() {
+    window.abrirModalComunicado = function() { document.getElementById('modalComunicado').style.display = 'flex'; }
+    window.fecharModalComunicado = function() {
       document.getElementById('modalComunicado').style.display = 'none';
       ['cTitulo','cTexto'].forEach(function(id) { document.getElementById(id).value = ''; });
       document.getElementById('cImagem').value = '';
     }
-    function salvarComunicado() {
+    window.salvarComunicado = function() {
       var titulo = document.getElementById('cTitulo').value.trim();
       var texto  = document.getElementById('cTexto').value.trim();
       var tag    = document.getElementById('cTag').value;
@@ -259,12 +261,12 @@
     }
 
     // Modal evento
-    function abrirModalEvento() { document.getElementById('modalEvento').style.display = 'flex'; }
-    function fecharModalEvento() {
+    window.abrirModalEvento = function() { document.getElementById('modalEvento').style.display = 'flex'; }
+    window.fecharModalEvento = function() {
       document.getElementById('modalEvento').style.display = 'none';
       ['eTitulo','eDescricao','eDataInicio','eDataFim'].forEach(function(id){ document.getElementById(id).value=''; });
     }
-    function salvarEvento() {
+    window.salvarEvento = function() {
       var titulo = document.getElementById('eTitulo').value.trim();
       var desc   = document.getElementById('eDescricao').value.trim();
       var di     = document.getElementById('eDataInicio').value;
@@ -277,7 +279,7 @@
     }
 
     // ── Modais de detalhe ──
-    function abrirDetalheCom(idx) {
+    window.abrirDetalheCom = function(idx) {
       var c = window._homeComs[idx];
       if (!c) return;
       var cls = tagCls[c.tag] || '';
@@ -290,9 +292,9 @@
       if (c.imagem) { img.src = c.imagem; img.style.display = ''; } else { img.style.display = 'none'; }
       document.getElementById('modalDetalheCom').style.display = 'flex';
     }
-    function fecharDetalheCom() { document.getElementById('modalDetalheCom').style.display = 'none'; }
+    window.fecharDetalheCom = function() { document.getElementById('modalDetalheCom').style.display = 'none'; }
 
-    function abrirDetalheEv(idx) {
+    window.abrirDetalheEv = function(idx) {
       var ev = window._homeEvs[idx];
       if (!ev) return;
       var dI = new Date(ev.dataInicio + 'T00:00:00');
@@ -307,10 +309,11 @@
       document.getElementById('hEvDesc').style.fontStyle = ev.descricao ? 'normal' : 'italic';
       document.getElementById('modalDetalheEv').style.display = 'flex';
     }
-    function fecharDetalheEv() { document.getElementById('modalDetalheEv').style.display = 'none'; }
+    window.fecharDetalheEv = function() { document.getElementById('modalDetalheEv').style.display = 'none'; }
 
     renderComunicados();
     renderEventos();
+      })();
   </script>
 
   <!-- Modal detalhe comunicado -->

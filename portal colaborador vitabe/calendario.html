@@ -288,10 +288,12 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="db.js"></script>
   <script src="data.js"></script>
   <script>
-    dbVerificarAcesso();
+    (async function() {
+    await dbVerificarAcesso();
 
     var viewYear = new Date().getFullYear();
     var viewMonth = new Date().getMonth();
@@ -300,7 +302,7 @@
 
     function pad(n) { return n < 10 ? '0' + n : '' + n; }
 
-    function esc(s) {
+    window.esc = function(s) {
       return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
@@ -317,9 +319,9 @@
       render();
     })();
 
-    function logout() { dbEncerrarSessao(); }
+    window.logout = async function() { await dbEncerrarSessao(); };
 
-    function navMes(d) {
+    window.navMes = function(d) {
       viewMonth += d;
       if (viewMonth > 11) { viewMonth = 0; viewYear++; }
       if (viewMonth < 0)  { viewMonth = 11; viewYear--; }
@@ -414,22 +416,22 @@
       }
     }
 
-    function excluir(id) {
+    window.excluir = function(id) {
       if (!confirm('Excluir este evento?')) return;
       dbExcluirEvento(id);
       render();
     }
 
-    function abrirModal() { document.getElementById('modalEvento').style.display = 'flex'; }
+    window.abrirModal = function() { document.getElementById('modalEvento').style.display = 'flex'; }
 
-    function fecharModal() {
+    window.fecharModal = function() {
       document.getElementById('modalEvento').style.display = 'none';
       ['eTitulo','eDescricao','eDataInicio','eDataFim'].forEach(function(id){
         document.getElementById(id).value = '';
       });
     }
 
-    function salvarEvento() {
+    window.salvarEvento = function() {
       var titulo = document.getElementById('eTitulo').value.trim();
       var desc   = document.getElementById('eDescricao').value.trim();
       var di     = document.getElementById('eDataInicio').value;
@@ -441,7 +443,7 @@
       render();
     }
 
-    function abrirDetalheEvento(id) {
+    window.abrirDetalheEvento = function(id) {
       var ev = dbGetEventos().find(function(e) { return e.id === id; });
       if (!ev) return;
       var dI = new Date(ev.dataInicio + 'T00:00:00');
@@ -459,9 +461,10 @@
       document.getElementById('modalDetalheEvento').style.display = 'flex';
     }
 
-    function fecharDetalheEvento() {
+    window.fecharDetalheEvento = function() {
       document.getElementById('modalDetalheEvento').style.display = 'none';
     }
+      })();
   </script>
 
   <!-- Modal detalhe evento -->

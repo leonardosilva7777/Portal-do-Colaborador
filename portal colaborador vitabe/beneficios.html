@@ -85,11 +85,13 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="db.js"></script>
   <script src="data.js"></script>
   <script src="content.js"></script>
   <script>
-    dbVerificarAcesso();
+    (async function() {
+    await dbVerificarAcesso();
     (function () {
       var s = dbGetSessao(); var n = s ? s.nome : 'Colaborador';
       document.getElementById('userName').textContent = n;
@@ -99,9 +101,9 @@
         document.querySelectorAll('.nav-admin-only').forEach(function(el) { el.style.display = ''; });
       }
     })();
-    function logout() { dbEncerrarSessao(); }
+    window.logout = async function() { await dbEncerrarSessao(); };
 
-    function escHtml(str) {
+    window.escHtml = function(str) {
       return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
@@ -133,14 +135,14 @@
       });
     }
 
-    function excluirCustom(id) {
+    window.excluirCustom = function(id) {
       if (!confirm('Excluir este benefício?')) return;
       dbExcluirBeneficioCustom(id);
       renderCustomBeneficios();
     }
 
-    function abrirModalBeneficio() { document.getElementById('modalBeneficio').style.display = 'flex'; }
-    function fecharModalBeneficio() {
+    window.abrirModalBeneficio = function() { document.getElementById('modalBeneficio').style.display = 'flex'; }
+    window.fecharModalBeneficio = function() {
       document.getElementById('modalBeneficio').style.display = 'none';
       document.getElementById('bNome').value = '';
       document.getElementById('bLink').value = '';
@@ -148,7 +150,7 @@
       document.getElementById('bPdf').value = '';
     }
 
-    function salvarBeneficio() {
+    window.salvarBeneficio = function() {
       var nome    = document.getElementById('bNome').value.trim();
       var link    = document.getElementById('bLink').value.trim();
       var imgFile = document.getElementById('bImagem').files[0];
@@ -184,7 +186,7 @@
       if (pending === 0) finalizar();
     }
 
-    function abrirPdf(id) {
+    window.abrirPdf = function(id) {
       var lista = dbGetBeneficiosCustom();
       var b = lista.find(function(x) { return x.id === id; });
       if (b && b.pdf) {
@@ -195,6 +197,7 @@
     }
 
     renderCustomBeneficios();
+      })();
   </script>
 </body>
 </html>

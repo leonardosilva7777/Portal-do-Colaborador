@@ -63,13 +63,16 @@
     </main>
   </div>
     
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="db.js"></script>
   <script src="data.js"></script>
   <script src="content.js"></script>
   <script>
-    dbVerificarAcesso();
+    (async function() {
+    await dbVerificarAcesso();
     (function(){ var s=dbGetSessao(); var n=s?s.nome:'Colaborador'; var el=document.getElementById('userName'); var av=document.getElementById('userAvatar'); if(el)el.textContent=n; if(av&&n)av.textContent=n.charAt(0).toUpperCase(); })();
-    function logout(){ dbEncerrarSessao(); }
+    window.logout = async function() { await dbEncerrarSessao(); };
+      })();
   </script>
 </body>
 </html>

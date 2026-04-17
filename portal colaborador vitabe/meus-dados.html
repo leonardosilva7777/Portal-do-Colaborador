@@ -226,11 +226,13 @@
 
     
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="db.js"></script>
   <script src="data.js"></script>
   <script src="content.js"></script>
   <script>
-    dbVerificarAcesso();
+    (async function() {
+    await dbVerificarAcesso();
 
     (function () {
       var s = dbGetSessao(); var n = s ? s.nome : 'Colaborador';
@@ -250,7 +252,7 @@
 
       // Load professional data from user record
       if (s) {
-        var todos = dbGetUsuarios();
+        var todos = await dbGetUsuarios();
         var u = todos.find(function(x) { return x.id === s.id; });
         if (u) {
           if (u.cargo)          { document.getElementById('profCargo').value    = u.cargo; }
@@ -271,7 +273,7 @@
       }
     })();
 
-    function logout() { dbEncerrarSessao(); }
+    window.logout = async function() { await dbEncerrarSessao(); };
 
     document.getElementById('dadosForm').addEventListener('submit', function (e) {
       e.preventDefault();
@@ -280,6 +282,7 @@
         document.getElementById('successMessage').classList.remove('show');
       }, 4000);
     });
+      })();
   </script>
 
 </body>

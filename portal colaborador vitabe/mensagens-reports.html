@@ -126,50 +126,52 @@
 
   
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="db.js"></script>
   <script src="data.js"></script>
   <script src="content.js"></script>
   <script>
-    dbVerificarAcesso();
-    dbVerificarAdmin();
+    (async function() {
+    await dbVerificarAcesso();
+    await dbVerificarAdmin();
     (function () {
       var s = dbGetSessao(); var n = s ? s.nome : 'Colaborador';
       document.getElementById('userName').textContent = n;
       document.getElementById('userAvatar').textContent = n.charAt(0).toUpperCase();
       document.querySelectorAll('.nav-admin-only').forEach(function(el) { el.style.display = ''; });
     })();
-    function logout() { dbEncerrarSessao(); }
+    window.logout = async function() { await dbEncerrarSessao(); };
 
-    function escHtml(str) {
+    window.escHtml = function(str) {
       return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
 
-    function mudarAba(aba, btn) {
+    window.mudarAba = function(aba, btn) {
       document.querySelectorAll('.inbox-tab').forEach(function(b) { b.classList.remove('active'); });
       btn.classList.add('active');
       document.getElementById('painelMensagens').style.display = aba === 'mensagens' ? '' : 'none';
       document.getElementById('painelReports').style.display = aba === 'reports' ? '' : 'none';
     }
 
-    function toggleMsgDetail(id) {
+    window.toggleMsgDetail = function(id) {
       var el = document.getElementById('detail_' + id);
       if (!el) return;
       el.classList.toggle('show');
     }
 
-    function excluirMensagem(id) {
+    window.excluirMensagem = function(id) {
       if (!confirm('Excluir esta mensagem?')) return;
       dbExcluirMensagem(id);
       renderMensagens();
     }
 
-    function excluirReport(id) {
+    window.excluirReport = function(id) {
       if (!confirm('Excluir este relato?')) return;
       dbExcluirReport(id);
       renderReports();
     }
 
-    function renderMensagens() {
+    window.renderMensagens = function() {
       var lista = dbGetMensagens();
       var cont = document.getElementById('listaMensagens');
       if (lista.length === 0) { cont.innerHTML = '<p class="rb-empty">Nenhuma mensagem recebida.</p>'; return; }
@@ -192,7 +194,7 @@
       }).join('');
     }
 
-    function renderReports() {
+    window.renderReports = function() {
       var lista = dbGetReports();
       var cont = document.getElementById('listaReports');
       if (lista.length === 0) { cont.innerHTML = '<p class="rb-empty">Nenhum relato recebido.</p>'; return; }
@@ -217,6 +219,7 @@
 
     renderMensagens();
     renderReports();
+      })();
   </script>
 
 </body>
