@@ -226,7 +226,7 @@
     <!-- Etapa 1: Email -->
     <div class="step active" id="step1">
       <p class="form-subtitle">Informe seu e-mail corporativo para receber o código de verificação.</p>
-      <form id="formEmail" novalidate>
+      <form id="formEmail" novalidate action="javascript:void(0)" method="POST">
         <div class="form-group">
           <label for="email">E-mail corporativo</label>
           <input type="email" id="email" placeholder="seunome@vitabe.com.br" required autocomplete="email" />
@@ -238,7 +238,7 @@
     <!-- Etapa 2: Código OTP -->
     <div class="step" id="step2">
       <p class="form-subtitle">Digite o código enviado para <strong id="emailDisplay"></strong>.</p>
-      <form id="formCodigo" novalidate>
+      <form id="formCodigo" novalidate action="javascript:void(0)" method="POST">
         <div class="form-group">
           <label for="codigo">Código de verificação</label>
           <input type="text" id="codigo" placeholder="Digite o código recebido" required autocomplete="one-time-code" inputmode="numeric" maxlength="8" />
@@ -250,7 +250,7 @@
     <!-- Etapa 3: Nova senha -->
     <div class="step" id="step3">
       <p class="form-subtitle">Defina sua nova senha.</p>
-      <form id="formSenha" novalidate>
+      <form id="formSenha" novalidate action="javascript:void(0)" method="POST">
         <div class="form-group">
           <label for="novaSenha">Nova senha</label>
           <input type="password" id="novaSenha" placeholder="Mínimo 6 caracteres" required autocomplete="new-password" />
