@@ -352,28 +352,29 @@ async function dbCriarUsuario(nome, email, senha) {
   }
 
   // Supabase com "Confirm email" desativado retorna sessão imediatamente
-  if (data.user) {
-    // Aguardar um instante para o trigger criar o profile
-    await new Promise(function(r) { setTimeout(r, 500); });
+  if (data.user) {    var userId = data.user.id;    var { data: profile, error: profErr } = await supabase      .from("profiles")      .insert({ id: userId, nome: nome.trim(), email: emailNorm, role: ehAdmin ? "admin" : "user" })      .select()      .single();    if (profErr || !profile) return "ERRO_CADASTRO";    _sessaoCache = { id: profile.id, nome: profile.nome, email: profile.email, role: profile.role };    return _sessaoCache;  }  return "ERRO_CADASTRO";}
 
-    var { data: profile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', data.user.id)
-      .single();
 
-    if (profile) {
-      _sessaoCache = {
-        id:    profile.id,
-        nome:  profile.nome,
-        email: profile.email,
-        role:  profile.role
-      };
-      return _sessaoCache;
-    }
-  }
 
-  return 'ERRO_CADASTRO';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
 
 /**
