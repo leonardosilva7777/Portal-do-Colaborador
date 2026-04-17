@@ -204,11 +204,28 @@ var _sessaoCache = null;
 async function dbInit() {
   var { data: { session } } = await supabase.auth.getSession();
   if (session && session.user) {
+    var userId = session.user.id;
+    var emailNorm = (session.user.email || '').toLowerCase();
+
     var { data: profile } = await supabase
       .from('profiles')
       .select('*')
-      .eq('id', session.user.id)
+      .eq('id', userId)
       .single();
+
+    // Se auth existe mas profile não, cria automaticamente
+    if (!profile) {
+      var userMeta = session.user.user_metadata || {};
+      var ehAdmin = ADMIN_EMAILS.indexOf(emailNorm) !== -1;
+      var novoNome = userMeta.nome || getNomeLicenciado(emailNorm) || emailNorm.split('@')[0];
+      var novoRole = ehAdmin ? 'admin' : (userMeta.role || 'user');
+      var { data: newProfile } = await supabase
+        .from('profiles')
+        .insert({ id: userId, nome: novoNome, email: emailNorm, role: novoRole })
+        .select()
+        .single();
+      if (newProfile) profile = newProfile;
+    }
 
     if (profile) {
       _sessaoCache = {
@@ -352,7 +369,37 @@ async function dbCriarUsuario(nome, email, senha) {
   }
 
   // Supabase com "Confirm email" desativado retorna sessão imediatamente
-  if (data.user) {    var userId = data.user.id;    var { data: profile, error: profErr } = await supabase      .from("profiles")      .insert({ id: userId, nome: nome.trim(), email: emailNorm, role: ehAdmin ? "admin" : "user" })      .select()      .single();    if (profErr || !profile) return "ERRO_CADASTRO";    _sessaoCache = { id: profile.id, nome: profile.nome, email: profile.email, role: profile.role };    return _sessaoCache;  }  return "ERRO_CADASTRO";}
+  if (!data.user) return 'ERRO_CADASTRO';
+
+  var userId = data.user.id;
+
+  // O trigger handle_new_user() no Supabase já cria o profile automaticamente.
+  // Buscamos o profile criado pelo trigger.
+  var { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', userId)
+    .single();
+
+  // Fallback: se o trigger não disparou, cria o profile manualmente
+  if (!profile) {
+    var { data: newProfile, error: insertErr } = await supabase
+      .from('profiles')
+      .insert({ id: userId, nome: nome.trim(), email: emailNorm, role: ehAdmin ? 'admin' : 'user' })
+      .select()
+      .single();
+    if (insertErr || !newProfile) return 'ERRO_CADASTRO';
+    profile = newProfile;
+  }
+
+  _sessaoCache = {
+    id:    profile.id,
+    nome:  profile.nome,
+    email: profile.email,
+    role:  profile.role
+  };
+  return _sessaoCache;
+}
 
 /**
  * Admin cria usuário (sem afetar sessão atual do admin).
@@ -506,6 +553,40 @@ async function dbRedefinirSenha(novaSenha) {
   await supabase.auth.signOut();
   _sessaoCache = null;
   return 'OK';
+}
+
+// ── PERFIL DO USUÁRIO LOGADO ──────────────────────────────────────────────────
+
+/** Retorna o perfil completo do usuário logado (todas as colunas) */
+async function dbGetMeuPerfil() {
+  if (!_sessaoCache) return null;
+  var { data } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', _sessaoCache.id)
+    .single();
+  return data;
+}
+
+/** Atualiza dados pessoais do próprio usuário */
+async function dbAtualizarMeusDados(dados) {
+  if (!_sessaoCache) return false;
+  var updates = {};
+  if (dados.nome !== undefined)               updates.nome = dados.nome;
+  if (dados.telefone !== undefined)            updates.telefone = dados.telefone;
+  if (dados.contato_emergencia !== undefined)  updates.contato_emergencia = dados.contato_emergencia;
+  if (dados.data_nascimento !== undefined)     updates.data_nascimento = dados.data_nascimento;
+  if (dados.cidade !== undefined)              updates.cidade = dados.cidade;
+
+  var { error } = await supabase
+    .from('profiles')
+    .update(updates)
+    .eq('id', _sessaoCache.id);
+
+  if (!error && dados.nome) {
+    _sessaoCache.nome = dados.nome;
+  }
+  return !error;
 }
 
 // ── VALIDAÇÃO DE E-MAIL LICENCIADO ────────────────────────────────────────────

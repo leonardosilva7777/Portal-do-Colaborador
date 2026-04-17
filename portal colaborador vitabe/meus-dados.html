@@ -232,57 +232,98 @@
   <script src="content.js"></script>
   <script>
     (async function() {
-    await dbVerificarAcesso();
+      await dbVerificarAcesso();
 
-    (function () {
-      var s = dbGetSessao(); var n = s ? s.nome : 'Colaborador';
-      var e = document.getElementById('userName');
-      var a = document.getElementById('userAvatar');
+      var s = dbGetSessao();
+      var n = s ? s.nome : 'Colaborador';
+
+      // Header
+      var eN = document.getElementById('userName');
+      var eA = document.getElementById('userAvatar');
+      if (eN) eN.textContent = n;
+      if (eA && n) eA.textContent = n.charAt(0).toUpperCase();
+
+      // Profile header
       var pn = document.getElementById('perfilNome');
       var pa = document.getElementById('perfilAvatar');
-      if (e) e.textContent = n;
-      if (a && n) a.textContent = n.charAt(0).toUpperCase();
       if (pn) pn.textContent = n;
       if (pa && n) pa.textContent = n.charAt(0).toUpperCase();
+
+      // Form fields from session
       var nomeField = document.getElementById('dpNome');
       if (nomeField && n !== 'Colaborador') nomeField.value = n;
-      // Load email
       var emailField = document.getElementById('dpEmail');
       if (emailField && s && s.email) emailField.value = s.email;
 
-      // Load professional data from user record
+      // Load full profile from Supabase (works for any user, not admin-only)
       if (s) {
-        var todos = await dbGetUsuarios();
-        var u = todos.find(function(x) { return x.id === s.id; });
-        if (u) {
-          if (u.cargo)          { document.getElementById('profCargo').value    = u.cargo; }
-          if (u.departamento)   { document.getElementById('profDepto').value    = u.departamento; }
-          if (u.dataAdmissao)   {
-            var d = new Date(u.dataAdmissao + 'T00:00:00');
+        var perfil = await dbGetMeuPerfil();
+        if (perfil) {
+          // Personal data
+          if (perfil.telefone)            document.getElementById('dpTelefone').value = perfil.telefone;
+          if (perfil.contato_emergencia)  document.getElementById('dpEmergencia').value = perfil.contato_emergencia;
+          if (perfil.data_nascimento)     document.getElementById('dpDataNasc').value = perfil.data_nascimento;
+          if (perfil.cidade)              document.getElementById('dpCidade').value = perfil.cidade;
+
+          // Professional data (readonly)
+          if (perfil.cargo)            document.getElementById('profCargo').value = perfil.cargo;
+          if (perfil.departamento)     document.getElementById('profDepto').value = perfil.departamento;
+          if (perfil.data_admissao) {
+            var d = new Date(perfil.data_admissao + 'T00:00:00');
             document.getElementById('profAdmissao').value = d.toLocaleDateString('pt-BR');
           }
-          if (u.regimeTrabalho) { document.getElementById('profRegime').value   = u.regimeTrabalho; }
-          var cargoLabel = u.cargo || 'Colaborador Renova Be';
-          var deptoLabel = u.departamento ? ' · ' + u.departamento : '';
+          if (perfil.regime_trabalho)  document.getElementById('profRegime').value = perfil.regime_trabalho;
+
+          // Subtitle
+          var cargoLabel = perfil.cargo || 'Colaborador Renova Be';
+          var deptoLabel = perfil.departamento ? ' \u00b7 ' + perfil.departamento : '';
           var pc = document.getElementById('perfilCargo');
           if (pc) pc.textContent = cargoLabel + deptoLabel;
-          if (dbIsAdmin()) {
-            document.querySelectorAll('.nav-admin-only').forEach(function(el) { el.style.display = ''; });
-          }
         }
       }
+
+      // Admin menu
+      if (dbIsAdmin()) {
+        document.querySelectorAll('.nav-admin-only').forEach(function(el) { el.style.display = ''; });
+      }
+
+      window.logout = async function() { await dbEncerrarSessao(); };
+
+      // Save personal data to Supabase
+      document.getElementById('dadosForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        var btn = this.querySelector('.btn');
+        btn.disabled = true;
+        btn.textContent = 'Salvando\u2026';
+
+        var ok = await dbAtualizarMeusDados({
+          nome:               document.getElementById('dpNome').value.trim(),
+          telefone:           document.getElementById('dpTelefone').value.trim(),
+          contato_emergencia: document.getElementById('dpEmergencia').value.trim(),
+          data_nascimento:    document.getElementById('dpDataNasc').value,
+          cidade:             document.getElementById('dpCidade').value.trim()
+        });
+
+        btn.disabled = false;
+        btn.textContent = 'Salvar altera\u00e7\u00f5es';
+
+        if (ok) {
+          document.getElementById('successMessage').classList.add('show');
+          var novoNome = document.getElementById('dpNome').value.trim();
+          if (novoNome) {
+            document.getElementById('userName').textContent = novoNome;
+            document.getElementById('userAvatar').textContent = novoNome.charAt(0).toUpperCase();
+            document.getElementById('perfilNome').textContent = novoNome;
+            document.getElementById('perfilAvatar').textContent = novoNome.charAt(0).toUpperCase();
+          }
+          setTimeout(function() {
+            document.getElementById('successMessage').classList.remove('show');
+          }, 4000);
+        } else {
+          alert('Erro ao salvar. Tente novamente.');
+        }
+      });
     })();
-
-    window.logout = async function() { await dbEncerrarSessao(); };
-
-    document.getElementById('dadosForm').addEventListener('submit', function (e) {
-      e.preventDefault();
-      document.getElementById('successMessage').classList.add('show');
-      setTimeout(function () {
-        document.getElementById('successMessage').classList.remove('show');
-      }, 4000);
-    });
-      })();
   </script>
 
 </body>

@@ -14,6 +14,10 @@ CREATE TABLE profiles (
   departamento TEXT,
   data_admissao TEXT,
   regime_trabalho TEXT,
+  telefone TEXT,
+  contato_emergencia TEXT,
+  data_nascimento TEXT,
+  cidade TEXT,
   criado_em TIMESTAMPTZ DEFAULT now(),
   ultimo_login TIMESTAMPTZ
 );
@@ -55,3 +59,10 @@ CREATE POLICY "admin_update_all" ON profiles FOR UPDATE USING (is_admin());
 
 -- Política de DELETE (somente admin)
 CREATE POLICY "admin_delete" ON profiles FOR DELETE USING (is_admin());
+
+-- Políticas de INSERT (para fallback JS caso trigger falhe)
+CREATE POLICY "users_insert_own" ON profiles FOR INSERT WITH CHECK (auth.uid() = id);
+CREATE POLICY "admin_insert_all" ON profiles FOR INSERT WITH CHECK (is_admin());
+
+-- 4. Permissões para o role authenticated
+GRANT SELECT, INSERT, UPDATE, DELETE ON profiles TO authenticated;
