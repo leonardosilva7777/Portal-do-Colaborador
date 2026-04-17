@@ -353,7 +353,6 @@ async function dbCriarUsuario(nome, email, senha) {
 
   // Supabase com "Confirm email" desativado retorna sessão imediatamente
   if (data.user) {    var userId = data.user.id;    var { data: profile, error: profErr } = await supabase      .from("profiles")      .insert({ id: userId, nome: nome.trim(), email: emailNorm, role: ehAdmin ? "admin" : "user" })      .select()      .single();    if (profErr || !profile) return "ERRO_CADASTRO";    _sessaoCache = { id: profile.id, nome: profile.nome, email: profile.email, role: profile.role };    return _sessaoCache;  }  return "ERRO_CADASTRO";}
-}
 
 /**
  * Admin cria usuário (sem afetar sessão atual do admin).
