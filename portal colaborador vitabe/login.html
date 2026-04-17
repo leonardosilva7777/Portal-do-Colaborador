@@ -209,7 +209,7 @@
 
     <div id="alertMsg" class="alert alert-error" role="alert"></div>
 
-    <form id="loginForm" novalidate>
+    <form id="loginForm" novalidate action="javascript:void(0)" method="POST">
       <div class="form-group">
         <label for="email">E-mail corporativo</label>
         <input
@@ -241,69 +241,68 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="db.js"></script>
+
   <script>
-    (async function() {
-      // Se já está logado, redireciona
-      await dbInit();
-      if (dbGetSessao()) {
-        window.location.href = 'index.html';
+    // Register form handler IMMEDIATELY to prevent native form submit
+    var form     = document.getElementById('loginForm');
+    var alertMsg = document.getElementById('alertMsg');
+
+    function mostrarErro(msg) {
+      alertMsg.textContent = msg;
+      alertMsg.className = 'alert alert-error show';
+    }
+
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      alertMsg.className = 'alert alert-error';
+
+      var email = document.getElementById('email').value.trim();
+      var senha = document.getElementById('senha').value;
+
+      if (!email || !senha) {
+        mostrarErro('Preencha e-mail e senha.');
         return;
       }
 
-      var form     = document.getElementById('loginForm');
-      var alertMsg = document.getElementById('alertMsg');
+      var btn = form.querySelector('.btn-submit');
+      btn.disabled = true;
+      btn.textContent = 'Entrando…';
 
-      function mostrarErro(msg) {
-        alertMsg.textContent = msg;
-        alertMsg.className = 'alert alert-error show';
+      var resultado = await dbLogin(email, senha);
+
+      if (resultado === 'CREDENCIAIS_INVALIDAS') {
+        mostrarErro('E-mail ou senha incorretos. Verifique e tente novamente.');
+        btn.disabled = false;
+        btn.textContent = 'Entrar';
+        document.getElementById('senha').value = '';
+        document.getElementById('senha').focus();
+        return;
+      }
+      if (resultado === 'USUARIO_INATIVO') {
+        mostrarErro('Sua conta está inativa. Entre em contato com o G&G.');
+        btn.disabled = false;
+        btn.textContent = 'Entrar';
+        return;
+      }
+      if (typeof resultado === 'string') {
+        mostrarErro('Erro ao fazer login. Tente novamente.');
+        btn.disabled = false;
+        btn.textContent = 'Entrar';
+        return;
       }
 
-      form.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        alertMsg.className = 'alert alert-error';
+      // Login bem-sucedido
+      window.location.href = 'index.html';
+    });
 
-        var email = document.getElementById('email').value.trim();
-        var senha = document.getElementById('senha').value;
-
-        if (!email || !senha) {
-          mostrarErro('Preencha e-mail e senha.');
-          return;
-        }
-
-        var btn = form.querySelector('.btn-submit');
-        btn.disabled = true;
-        btn.textContent = 'Entrando…';
-
-        var resultado = await dbLogin(email, senha);
-
-        if (resultado === 'CREDENCIAIS_INVALIDAS') {
-          mostrarErro('E-mail ou senha incorretos. Verifique e tente novamente.');
-          btn.disabled = false;
-          btn.textContent = 'Entrar';
-          document.getElementById('senha').value = '';
-          document.getElementById('senha').focus();
-          return;
-        }
-        if (resultado === 'USUARIO_INATIVO') {
-          mostrarErro('Sua conta está inativa. Entre em contato com o G&G.');
-          btn.disabled = false;
-          btn.textContent = 'Entrar';
-          return;
-        }
-        if (typeof resultado === 'string') {
-          mostrarErro('Erro ao fazer login. Tente novamente.');
-          btn.disabled = false;
-          btn.textContent = 'Entrar';
-          return;
-        }
-
-        // Login bem-sucedido
+    // Check session async (redirect if already logged in)
+    (async function() {
+      await dbInit();
+      if (dbGetSessao()) {
         window.location.href = 'index.html';
-      });
-
+      }
       document.getElementById('email').focus();
     })();
   </script>
-
 </body>
 </html>

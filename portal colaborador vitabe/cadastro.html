@@ -231,7 +231,7 @@
 
     <div id="alertMsg" class="alert" role="alert"></div>
 
-    <form id="cadastroForm" novalidate>
+    <form id="cadastroForm" novalidate action="javascript:void(0)" method="POST">
 
       <div class="form-group">
         <label for="nome">Nome completo</label>
@@ -270,153 +270,111 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="db.js"></script>
+
   <script>
+    // Register handlers IMMEDIATELY to prevent native form submit
+    var alertMsg     = document.getElementById('alertMsg');
+    var emailInput   = document.getElementById('email');
+    var emailHint    = document.getElementById('emailHint');
+    var senhaInput   = document.getElementById('senha');
+    var confirmarInput  = document.getElementById('confirmarSenha');
+    var confirmarHint   = document.getElementById('confirmarHint');
+    var bars = [document.getElementById('bar1'), document.getElementById('bar2'),
+                document.getElementById('bar3'), document.getElementById('bar4')];
+
+    senhaInput.addEventListener('input', function() {
+      var v = this.value;
+      var pontos = 0;
+      if (v.length >= 6)  pontos++;
+      if (v.length >= 10) pontos++;
+      if (/[A-Z]/.test(v) || /[0-9]/.test(v)) pontos++;
+      if (/[^a-zA-Z0-9]/.test(v)) pontos++;
+      var cores = ['#DC3545', '#F18F33', '#C3D72C', '#4caf50'];
+      bars.forEach(function(b, i) {
+        b.style.background = i < pontos ? cores[pontos - 1] : '#D9CCC0';
+      });
+    });
+
+    confirmarInput.addEventListener('input', function() {
+      if (!this.value) { confirmarHint.textContent = ''; confirmarHint.className = 'field-hint'; return; }
+      if (this.value === senhaInput.value) {
+        confirmarHint.textContent = 'Senhas coincidem.';
+        confirmarHint.className = 'field-hint ok';
+        confirmarInput.className = 'input-ok';
+      } else {
+        confirmarHint.textContent = 'As senhas não coincidem.';
+        confirmarHint.className = 'field-hint err';
+        confirmarInput.className = 'input-err';
+      }
+    });
+
+    var emailTimeout;
+    emailInput.addEventListener('input', function() {
+      clearTimeout(emailTimeout);
+      var v = this.value.trim().toLowerCase();
+      emailHint.textContent = '';
+      emailHint.className = 'field-hint';
+      emailInput.className = '';
+      if (!v) return;
+      emailTimeout = setTimeout(function() {
+        if (emailLicenciado(v)) {
+          var nome = getNomeLicenciado(v);
+          emailHint.textContent = 'E-mail válido' + (nome ? ' — ' + nome : '') + '.';
+          emailHint.className = 'field-hint ok';
+          emailInput.className = 'input-ok';
+          var nomeField = document.getElementById('nome');
+          if (!nomeField.value && nome) nomeField.value = nome;
+        } else if (v.includes('@')) {
+          emailHint.textContent = 'Este e-mail não está na lista de colaboradores licenciados.';
+          emailHint.className = 'field-hint err';
+          emailInput.className = 'input-err';
+        }
+      }, 400);
+    });
+
+    document.getElementById('cadastroForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      alertMsg.className = 'alert';
+
+      var nome     = document.getElementById('nome').value.trim();
+      var email    = emailInput.value.trim();
+      var senha    = senhaInput.value;
+      var confirmar = confirmarInput.value;
+
+      if (!nome) { mostrarAlerta('error', 'Informe seu nome completo.'); return; }
+      if (!email) { mostrarAlerta('error', 'Informe seu e-mail corporativo.'); return; }
+      if (!emailLicenciado(email)) { mostrarAlerta('error', 'Este e-mail não está na lista de colaboradores licenciados.'); return; }
+      if (!senha || senha.length < 6) { mostrarAlerta('error', 'A senha precisa ter no mínimo 6 caracteres.'); return; }
+      if (senha !== confirmar) { mostrarAlerta('error', 'As senhas não coincidem.'); return; }
+
+      var btn = document.getElementById('btnCadastrar');
+      btn.disabled = true;
+      btn.textContent = 'Criando conta…';
+
+      var resultado = await dbCriarUsuario(nome, email, senha);
+
+      if (resultado === 'EMAIL_JA_CADASTRADO') { mostrarAlerta('error', 'Já existe uma conta com este e-mail. <a href="login.html">Entrar</a>'); btn.disabled = false; btn.textContent = 'Criar conta'; return; }
+      if (resultado === 'EMAIL_NAO_LICENCIADO') { mostrarAlerta('error', 'Este e-mail não está na lista de colaboradores licenciados.'); btn.disabled = false; btn.textContent = 'Criar conta'; return; }
+      if (resultado === 'SENHA_FRACA') { mostrarAlerta('error', 'Senha muito curta. Use no mínimo 6 caracteres.'); btn.disabled = false; btn.textContent = 'Criar conta'; return; }
+      if (typeof resultado === 'string') { mostrarAlerta('error', 'Erro ao criar conta. Tente novamente.'); btn.disabled = false; btn.textContent = 'Criar conta'; return; }
+
+      mostrarAlerta('success', 'Conta criada! Redirecionando…');
+      setTimeout(function() { window.location.href = 'index.html'; }, 1200);
+    });
+
+    function mostrarAlerta(tipo, html) {
+      alertMsg.innerHTML = html;
+      alertMsg.className = 'alert alert-' + tipo + ' show';
+    }
+
+    // Check session async
     (async function() {
-      // Se já está logado, redireciona
       await dbInit();
       if (dbGetSessao()) {
         window.location.href = 'index.html';
-        return;
       }
-
-      var alertMsg     = document.getElementById('alertMsg');
-      var emailInput   = document.getElementById('email');
-      var emailHint    = document.getElementById('emailHint');
-      var senhaInput   = document.getElementById('senha');
-      var confirmarInput  = document.getElementById('confirmarSenha');
-      var confirmarHint   = document.getElementById('confirmarHint');
-      var bars = [document.getElementById('bar1'), document.getElementById('bar2'),
-                  document.getElementById('bar3'), document.getElementById('bar4')];
-
-      // Feedback de força de senha em tempo real
-      senhaInput.addEventListener('input', function() {
-        var v = this.value;
-        var pontos = 0;
-        if (v.length >= 6)  pontos++;
-        if (v.length >= 10) pontos++;
-        if (/[A-Z]/.test(v) || /[0-9]/.test(v)) pontos++;
-        if (/[^a-zA-Z0-9]/.test(v)) pontos++;
-
-        var cores = ['#DC3545', '#F18F33', '#C3D72C', '#4caf50'];
-        bars.forEach(function(b, i) {
-          b.style.background = i < pontos ? cores[pontos - 1] : '#D9CCC0';
-        });
-      });
-
-      // Validação do campo de confirmação
-      confirmarInput.addEventListener('input', function() {
-        if (!this.value) { confirmarHint.textContent = ''; confirmarHint.className = 'field-hint'; return; }
-        if (this.value === senhaInput.value) {
-          confirmarHint.textContent = 'Senhas coincidem.';
-          confirmarHint.className = 'field-hint ok';
-          confirmarInput.className = 'input-ok';
-        } else {
-          confirmarHint.textContent = 'As senhas não coincidem.';
-          confirmarHint.className = 'field-hint err';
-          confirmarInput.className = 'input-err';
-        }
-      });
-
-      // Validação do e-mail contra lista licenciada
-      var emailTimeout;
-      emailInput.addEventListener('input', function() {
-        clearTimeout(emailTimeout);
-        var v = this.value.trim().toLowerCase();
-        emailHint.textContent = '';
-        emailHint.className = 'field-hint';
-        emailInput.className = '';
-        if (!v) return;
-        emailTimeout = setTimeout(function() {
-          if (emailLicenciado(v)) {
-            var nome = getNomeLicenciado(v);
-            emailHint.textContent = 'E-mail válido' + (nome ? ' — ' + nome : '') + '.';
-            emailHint.className = 'field-hint ok';
-            emailInput.className = 'input-ok';
-            var nomeField = document.getElementById('nome');
-            if (!nomeField.value && nome) nomeField.value = nome;
-          } else if (v.includes('@')) {
-            emailHint.textContent = 'Este e-mail não está na lista de colaboradores licenciados.';
-            emailHint.className = 'field-hint err';
-            emailInput.className = 'input-err';
-          }
-        }, 400);
-      });
-
-      // Envio do formulário
-      document.getElementById('cadastroForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        alertMsg.className = 'alert';
-
-        var nome     = document.getElementById('nome').value.trim();
-        var email    = emailInput.value.trim();
-        var senha    = senhaInput.value;
-        var confirmar = confirmarInput.value;
-
-        if (!nome) {
-          mostrarAlerta('error', 'Informe seu nome completo.');
-          return;
-        }
-        if (!email) {
-          mostrarAlerta('error', 'Informe seu e-mail corporativo.');
-          return;
-        }
-        if (!emailLicenciado(email)) {
-          mostrarAlerta('error', 'Este e-mail não está na lista de colaboradores licenciados.');
-          return;
-        }
-        if (!senha || senha.length < 6) {
-          mostrarAlerta('error', 'A senha precisa ter no mínimo 6 caracteres.');
-          return;
-        }
-        if (senha !== confirmar) {
-          mostrarAlerta('error', 'As senhas não coincidem.');
-          return;
-        }
-
-        var btn = document.getElementById('btnCadastrar');
-        btn.disabled = true;
-        btn.textContent = 'Criando conta…';
-
-        var resultado = await dbCriarUsuario(nome, email, senha);
-
-        if (resultado === 'EMAIL_JA_CADASTRADO') {
-          mostrarAlerta('error', 'Já existe uma conta com este e-mail. <a href="login.html">Entrar</a>');
-          btn.disabled = false;
-          btn.textContent = 'Criar conta';
-          return;
-        }
-        if (resultado === 'EMAIL_NAO_LICENCIADO') {
-          mostrarAlerta('error', 'Este e-mail não está na lista de colaboradores licenciados.');
-          btn.disabled = false;
-          btn.textContent = 'Criar conta';
-          return;
-        }
-        if (resultado === 'SENHA_FRACA') {
-          mostrarAlerta('error', 'Senha muito curta. Use no mínimo 6 caracteres.');
-          btn.disabled = false;
-          btn.textContent = 'Criar conta';
-          return;
-        }
-        if (typeof resultado === 'string') {
-          mostrarAlerta('error', 'Erro ao criar conta. Tente novamente.');
-          btn.disabled = false;
-          btn.textContent = 'Criar conta';
-          return;
-        }
-
-        // Sucesso — sessão já ativa via Supabase
-        mostrarAlerta('success', 'Conta criada! Redirecionando…');
-        setTimeout(function() { window.location.href = 'index.html'; }, 1200);
-      });
-
-      function mostrarAlerta(tipo, html) {
-        alertMsg.innerHTML = html;
-        alertMsg.className = 'alert alert-' + tipo + ' show';
-      }
-
       document.getElementById('email').focus();
     })();
   </script>
-
 </body>
 </html>
