@@ -313,8 +313,9 @@
       var n = s ? s.nome : 'Colaborador';
       document.getElementById('userName').textContent = n;
       document.getElementById('userAvatar').textContent = n.charAt(0).toUpperCase();
+      // Criação de eventos disponível para todos os colaboradores logados
+      document.getElementById('btnNovoEvento').style.display = '';
       if (dbIsAdmin()) {
-        document.getElementById('btnNovoEvento').style.display = '';
         document.querySelectorAll('.nav-admin-only').forEach(function(el) { el.style.display = ''; });
       }
       render();

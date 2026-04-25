@@ -124,6 +124,7 @@
       </div>
       <div class="form-group"><label for="cTexto">Texto</label><textarea id="cTexto" rows="4" placeholder="Conteúdo..." style="resize:vertical"></textarea></div>
       <div class="form-group"><label for="cImagem">Imagem (opcional)</label><input type="file" id="cImagem" accept="image/*" /></div>
+      <div class="form-group"><label for="cVideo">Link de vídeo (opcional)</label><input type="url" id="cVideo" placeholder="https://youtube.com/watch?v=... ou URL do vídeo" /></div>
       <div class="rb-modal-footer">
         <button type="button" class="rb-btn-cancel" onclick="fecharModalComunicado()">Cancelar</button>
         <button type="button" class="btn" style="margin-top:0" onclick="salvarComunicado()">Publicar</button>
@@ -189,6 +190,12 @@
       return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
 
+    function getYoutubeId(url) {
+      if (!url) return null;
+      var m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+      return m ? m[1] : null;
+    }
+
     var tagCls = { 'Geral': 'geral', 'Benefícios': 'beneficios', 'TI': 'ti', 'Políticas': '', 'Eventos': '', 'RH': '' };
 
     window.renderComunicados = function() {
@@ -246,7 +253,7 @@
     window.abrirModalComunicado = function() { document.getElementById('modalComunicado').style.display = 'flex'; }
     window.fecharModalComunicado = function() {
       document.getElementById('modalComunicado').style.display = 'none';
-      ['cTitulo','cTexto'].forEach(function(id) { document.getElementById(id).value = ''; });
+      ['cTitulo','cTexto','cVideo'].forEach(function(id) { document.getElementById(id).value = ''; });
       document.getElementById('cImagem').value = '';
     }
     window.salvarComunicado = function() {
@@ -254,8 +261,9 @@
       var texto  = document.getElementById('cTexto').value.trim();
       var tag    = document.getElementById('cTag').value;
       var f = document.getElementById('cImagem').files[0];
+      var videoUrl = document.getElementById('cVideo').value.trim();
       if (!titulo || !texto) { alert('Preencha título e texto.'); return; }
-      function criar(b64) { dbCriarComunicado({ titulo:titulo, texto:texto, tag:tag, imagem:b64||'' }); fecharModalComunicado(); renderComunicados(); }
+      function criar(b64) { dbCriarComunicado({ titulo:titulo, texto:texto, tag:tag, imagem:b64||'', video:videoUrl }); fecharModalComunicado(); renderComunicados(); }
       if (f) {
         if (f.size > 2*1024*1024) { alert('Imagem máx 2MB.'); return; }
         var fr = new FileReader(); fr.onload = function(e){criar(e.target.result);}; fr.readAsDataURL(f);
@@ -292,6 +300,19 @@
       document.getElementById('hComTexto').textContent = c.texto;
       var img = document.getElementById('hComImg');
       if (c.imagem) { img.src = c.imagem; img.style.display = ''; } else { img.style.display = 'none'; }
+      var videoEl = document.getElementById('hComVideo');
+      if (c.video) {
+        var ytId = getYoutubeId(c.video);
+        if (ytId) {
+          videoEl.innerHTML = '<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden"><iframe src="https://www.youtube.com/embed/' + ytId + '" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none" allowfullscreen></iframe></div>';
+        } else {
+          videoEl.innerHTML = '<video src="' + escHtml(c.video) + '" controls style="width:100%;max-height:360px"></video>';
+        }
+        videoEl.style.display = '';
+      } else {
+        videoEl.innerHTML = '';
+        videoEl.style.display = 'none';
+      }
       document.getElementById('modalDetalheCom').style.display = 'flex';
     }
     window.fecharDetalheCom = function() { document.getElementById('modalDetalheCom').style.display = 'none'; }
@@ -323,6 +344,7 @@
     <div style="background:#fff;border-radius:16px;max-width:640px;width:100%;box-shadow:0 12px 40px rgba(43,36,34,.2);overflow:hidden" onclick="event.stopPropagation()">
       <button onclick="fecharDetalheCom()" style="position:absolute;top:14px;right:14px;background:rgba(43,36,34,.7);color:#fff;border:none;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer;z-index:2;display:flex;align-items:center;justify-content:center;line-height:1">&times;</button>
       <img id="hComImg" src="" alt="" style="width:100%;aspect-ratio:16/7;object-fit:cover;display:none" />
+      <div id="hComVideo" style="display:none"></div>
       <div style="padding:28px 32px 32px;position:relative">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
           <span class="tag" id="hComTag">Geral</span>

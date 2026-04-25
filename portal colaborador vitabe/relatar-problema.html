@@ -128,6 +128,12 @@
               </div>
 
               <div class="form-group">
+                <label for="repAnexo">Anexos (opcional — imagens, PDFs ou vídeos, máx. 2 MB cada)</label>
+                <input type="file" id="repAnexo" accept="image/*,.pdf,video/mp4,video/webm" multiple />
+                <div id="repAnexoList" style="margin-top:8px"></div>
+              </div>
+
+              <div class="form-group">
                 <label for="repIdentificacao">Identificação (opcional)</label>
                 <input type="text" id="repIdentificacao" placeholder="Nome ou deixe em branco para envio anônimo" />
               </div>
@@ -160,6 +166,36 @@
     })();
     window.logout = async function() { await dbEncerrarSessao(); };
 
+    // Armazena anexos convertidos em base64
+    var _anexosPendentes = [];
+
+    document.getElementById('repAnexo').addEventListener('change', function () {
+      var files = Array.from(this.files);
+      var listEl = document.getElementById('repAnexoList');
+      files.forEach(function (file) {
+        if (file.size > 2 * 1024 * 1024) { alert('Arquivo "' + file.name + '" excede 2 MB.'); return; }
+        var reader = new FileReader();
+        reader.onload = function (ev) {
+          _anexosPendentes.push({ name: file.name, size: file.size, type: file.type, data: ev.target.result });
+          renderAnexos();
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+
+    function renderAnexos() {
+      var listEl = document.getElementById('repAnexoList');
+      if (_anexosPendentes.length === 0) { listEl.innerHTML = ''; return; }
+      listEl.innerHTML = _anexosPendentes.map(function (a, i) {
+        var size = a.size < 1024 ? a.size + ' B' : (a.size / 1024).toFixed(1) + ' KB';
+        return '<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--color-white-breathe);border-radius:8px;margin-bottom:4px;font-family:var(--fonte-apoio);font-size:13px">'
+          + '<span style="flex:1">' + a.name + ' <small style="color:#999">(' + size + ')</small></span>'
+          + '<button type="button" onclick="_anexosPendentes.splice(' + i + ',1);renderAnexos()" style="background:none;border:none;cursor:pointer;color:#c00;font-size:16px">&times;</button>'
+          + '</div>';
+      }).join('');
+    }
+    window.renderAnexos = renderAnexos;
+
     document.getElementById('reportForm').addEventListener('submit', function (e) {
       e.preventDefault();
       var categoria = document.getElementById('repCategoria').value;
@@ -171,8 +207,11 @@
         nome:      nomeId || (s ? s.nome : ''),
         categoria: categoria,
         descricao: descricao,
-        anonimo:   !nomeId
+        anonimo:   !nomeId,
+        anexos:    _anexosPendentes.slice()
       });
+      _anexosPendentes = [];
+      document.getElementById('repAnexoList').innerHTML = '';
       document.getElementById('successMessage').classList.add('show');
       this.reset();
       window.scrollTo({ top: 0, behavior: 'smooth' });

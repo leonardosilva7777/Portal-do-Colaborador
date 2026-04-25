@@ -212,6 +212,7 @@
           + '<p class="msg-item-preview">' + escHtml(r.descricao).slice(0, 100) + '…</p>'
           + '<div id="detail_r_' + r.id + '" class="msg-full">'
           + escHtml(r.descricao)
+          + (r.anexos && r.anexos.length ? '<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--cor-borda)"><strong style="font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--cor-texto-claro)">Anexos</strong>' + r.anexos.map(function(a){ return '<div style="display:flex;align-items:center;gap:8px;margin-top:6px"><a href="' + a.data + '" download="' + escHtml(a.name) + '" style="color:#EA5339;font-size:13px;text-decoration:none">' + escHtml(a.name) + '</a><small style="color:#999">' + (a.size < 1024 ? a.size + ' B' : (a.size/1024).toFixed(1) + ' KB') + '</small></div>'; }).join('') + '</div>' : '')
           + '<br><br><button class="msg-del-btn" onclick="excluirReport(\'' + r.id + '\');event.stopPropagation()">Excluir</button>'
           + '</div>'
           + '</div>';

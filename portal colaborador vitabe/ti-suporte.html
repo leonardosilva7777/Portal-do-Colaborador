@@ -175,6 +175,8 @@
       if (dbIsAdmin()) {
         document.querySelectorAll('.nav-admin-only').forEach(function(el) { el.style.display = ''; });
       }
+      // Re-inicializar content.js após sessão carregada (corrige botões de edição admin)
+      if (typeof contentReInit === 'function') contentReInit();
     })();
     window.logout = async function() { await dbEncerrarSessao(); };
       })();
