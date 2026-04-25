@@ -478,4 +478,27 @@
     init();
   }
 
+  // Auto-retry: sessão carrega via async, então dbIsAdmin() pode ser false no primeiro init.
+  // Verifica periodicamente se a sessão ficou disponível e re-injeta botões de edição.
+  var _adminResolved = false;
+  var _retryCount = 0;
+  var _retryInterval = setInterval(function() {
+    _retryCount++;
+    if (_retryCount > 30) { clearInterval(_retryInterval); return; }
+    if (_adminResolved) { clearInterval(_retryInterval); return; }
+    if (typeof dbIsAdmin === 'function' && dbIsAdmin()) {
+      _adminResolved = true;
+      clearInterval(_retryInterval);
+      document.querySelectorAll('.ce-edit-btn').forEach(function(btn) { btn.remove(); });
+      init();
+    }
+  }, 100);
+
+  // Expor init para re-inicialização manual se necessário
+  window.contentReInit = function() {
+    _adminResolved = true;
+    document.querySelectorAll('.ce-edit-btn').forEach(function(btn) { btn.remove(); });
+    init();
+  };
+
 })();

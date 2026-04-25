@@ -52,6 +52,7 @@ function dbCriarComunicado(dados) {
     tag:       dados.tag || 'Geral',
     texto:     dados.texto || '',
     imagem:    dados.imagem || '',
+    video:     dados.video || '',
     criadoEm:  new Date().toISOString(),
     autor:     (typeof dbGetSessao === 'function' && dbGetSessao()) ? dbGetSessao().nome : ''
   };
@@ -187,6 +188,7 @@ function dbSalvarReport(dados) {
     categoria: dados.categoria || '',
     descricao: dados.descricao || '',
     anonimo:   !!dados.anonimo,
+    anexos:    dados.anexos || [],
     lido:      false,
     tipo:      'report',
     criadoEm:  new Date().toISOString()
