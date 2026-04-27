@@ -97,7 +97,7 @@ select.field{cursor:pointer;}
 .vaga-header-detail h1{color:var(--cream);font-family:var(--font-h);font-size:clamp(24px,4vw,42px);font-weight:300;margin-bottom:16px;text-transform:uppercase;}
 .vaga-header-tags{display:flex;gap:10px;flex-wrap:wrap;}
 .vaga-header-tag{background:rgba(238,229,220,.15);color:var(--cream);font-size:12px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;padding:5px 14px;border-radius:20px;}
-.vaga-body{max-width:1100px;margin:0 auto;padding:48px 40px;display:grid;grid-template-columns:1fr 320px;gap:40px;align-items:start;}
+.vaga-body{max-width:760px;margin:0 auto;padding:48px 40px;}
 .vaga-section{margin-bottom:28px;}
 .vaga-section h3{font-family:var(--font-h);font-size:18px;font-weight:400;text-transform:uppercase;margin-bottom:12px;color:var(--dark);}
 .vaga-section p,.vaga-section li{font-size:15px;line-height:1.7;color:#555;margin-bottom:6px;}
@@ -105,7 +105,7 @@ select.field{cursor:pointer;}
 .vaga-section li::before{content:'→ ';color:var(--warm);font-weight:600;}
 .benef-tags{display:flex;flex-wrap:wrap;gap:8px;}
 .benef-tag{background:rgba(195,215,44,.2);color:var(--dark);font-size:12px;font-weight:500;padding:5px 12px;border-radius:20px;border:1px solid rgba(195,215,44,.4);}
-.sidebar-card{background:var(--white);border:1px solid rgba(43,36,34,.08);border-radius:10px;padding:26px;position:sticky;top:80px;}
+.sidebar-card{background:var(--white);border:1px solid rgba(43,36,34,.08);border-radius:10px;padding:26px;}
 .sidebar-card h3{font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:16px;}
 
 /* ── FORMULÁRIO CANDIDATURA ── */
@@ -161,6 +161,13 @@ textarea.field{min-height:80px;resize:vertical;}
 .toast{position:fixed;bottom:28px;right:28px;z-index:9999;background:var(--dark);color:var(--cream);padding:14px 22px;border-radius:8px;font-size:14px;display:none;animation:fadeUp .3s ease;box-shadow:0 8px 24px rgba(43,36,34,.3);}
 .toast.show{display:block;}
 
+/* ── MOB MENU ── */
+.mob-menu-btn{display:none;background:none;border:none;cursor:pointer;font-size:22px;color:var(--dark);padding:6px 8px;}
+.mob-nav{display:none;position:fixed;inset:0;background:var(--dark);z-index:500;flex-direction:column;align-items:center;justify-content:center;gap:24px;}
+.mob-nav.open{display:flex;}
+.mob-link{color:var(--cream);font-family:var(--font-b);font-size:18px;font-weight:500;background:none;border:none;cursor:pointer;letter-spacing:.06em;text-transform:uppercase;padding:8px;}
+.mob-close{position:absolute;top:24px;right:28px;background:none;border:none;cursor:pointer;color:rgba(238,229,220,.6);font-size:32px;line-height:1;}
+
 /* ── RESPONSIVE ── */
 @media(max-width:800px){
   #site-header{padding:0 20px;}
@@ -175,12 +182,17 @@ textarea.field{min-height:80px;resize:vertical;}
   .bt-form-wrap{padding:40px 20px;}
   .nav-btn{display:none;}
   .btn-portal{display:block!important;}
+  .mob-menu-btn{display:block;}
+  .vaga-body{padding:28px 20px;}
+  .vaga-header-detail{padding:40px 20px;}
+  .sobre-bloco{padding:40px 24px;}
 }
 </style>
 </head>
 <body>
 
 <div class="toast" id="toast"></div>
+<div class="mob-nav" id="mobNav"><button class="mob-close" onclick="toggleMobMenu()">✕</button><button class="mob-link" onclick="showPage('home');toggleMobMenu()">Início</button><button class="mob-link" onclick="showPage('vagas');toggleMobMenu()">Vagas</button><button class="mob-link" onclick="showPage('sobre');toggleMobMenu()">Sobre</button><button class="mob-link" onclick="showPage('talentos');toggleMobMenu()">Banco de Talentos</button><button class="mob-link" style="background:var(--warm);color:var(--cream);border-radius:999px;padding:14px 28px;margin-top:8px" onclick="window.location.href='login.html'">Área do Colaborador</button></div>
 
 <!-- ── HEADER ── -->
 <header id="site-header">
@@ -196,6 +208,7 @@ textarea.field{min-height:80px;resize:vertical;}
     <button class="nav-btn" id="nav-talentos" onclick="showPage('talentos')">Banco de Talentos</button>
     <button class="nav-btn btn-portal" onclick="window.location.href='login.html'">Área do Colaborador</button>
   </nav>
+  <button class="mob-menu-btn" onclick="toggleMobMenu()">☰</button>
 </header>
 
 <!-- ════════════════ HOME ════════════════ -->
@@ -573,6 +586,8 @@ async function enviarBancoTalentos() {
     '<button class="btn-candidatar" style="margin-top:20px;max-width:240px" onclick="showPage(\'home\')">Voltar ao início</button>' +
     '</div>';
 }
+
+window.toggleMobMenu = function(){ var n=document.getElementById('mobNav'); n.classList.toggle('open'); };
 
 // ── INIT ──
 document.addEventListener('DOMContentLoaded', function() {

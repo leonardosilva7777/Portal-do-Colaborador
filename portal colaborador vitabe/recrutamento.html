@@ -169,6 +169,31 @@
     /* ── Empty state ── */
     .empty-rec { text-align:center; padding:48px 20px; color:var(--cor-texto-secundario); }
     .empty-rec p { font-size:15px; margin-top:8px; }
+
+    /* ── Kanban ── */
+    .view-toggle{display:flex;gap:8px;margin-bottom:20px;}
+    .view-btn{background:var(--cor-fundo);border:1.5px solid var(--cor-borda);color:var(--cor-texto-secundario);cursor:pointer;font-family:var(--fonte-apoio);font-size:12px;font-weight:500;padding:7px 16px;border-radius:var(--radius-pill);transition:all .15s;}
+    .view-btn.active{background:var(--color-warm-intention);border-color:var(--color-warm-intention);color:#fff;}
+    .kanban-board{display:grid;grid-template-columns:repeat(6,minmax(190px,1fr));gap:12px;overflow-x:auto;padding-bottom:8px;}
+    .kanban-col{background:rgba(43,36,34,.04);border-radius:var(--radius-lg);padding:12px;min-height:160px;}
+    .kanban-col-title{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--cor-texto-secundario);margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--cor-borda);}
+    .kanban-card{background:var(--cor-branco);border:1px solid var(--cor-borda);border-radius:var(--radius-md);padding:12px;margin-bottom:8px;cursor:grab;transition:box-shadow .2s;}
+    .kanban-card:hover{box-shadow:var(--shadow-md);}
+    .kanban-card.dragging{opacity:.5;}
+    .kanban-col.drag-over{background:rgba(234,83,57,.06);outline:1.5px dashed var(--color-warm-intention);}
+    .kanban-card-name{font-size:13px;font-weight:600;color:var(--cor-texto-principal);margin-bottom:3px;}
+    .kanban-card-vaga{font-size:11px;color:var(--cor-texto-secundario);}
+    @media(max-width:900px){.kanban-board{grid-template-columns:repeat(3,minmax(150px,1fr));}}
+    @media(max-width:600px){
+      .rec-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+      .rec-tab{white-space:nowrap;padding:10px 12px;font-size:11px;}
+      .form-grid-2{grid-template-columns:1fr;}
+      .vaga-rh-right{flex-wrap:wrap;gap:8px;}
+      .cand-filters{grid-template-columns:1fr;}
+      .cand-detail-grid{grid-template-columns:1fr;}
+      .kanban-board{grid-template-columns:repeat(2,minmax(140px,1fr));}
+      .rec-toolbar{flex-direction:column;align-items:flex-start;}
+    }
   </style>
 </head>
 <body>
@@ -259,12 +284,23 @@
 
           <!-- ══ TAB: CANDIDATOS ══ -->
           <div class="rec-panel" id="tab-candidatos">
+            <div id="cand-view-controls" style="display:none">
+              <div class="rec-toolbar">
+                <h3>Candidaturas</h3>
+                <div class="view-toggle">
+                  <button class="view-btn active" id="btn-view-lista" onclick="setViewMode('lista')">☰ Lista</button>
+                  <button class="view-btn" id="btn-view-kanban" onclick="setViewMode('kanban')">⊞ Kanban</button>
+                </div>
+              </div>
+            </div>
+            <div id="kanban-view" style="display:none">
+              <div class="kanban-board" id="kanban-board"></div>
+            </div>
             <div id="cand-detalhe-view" style="display:none">
               <button onclick="voltarCandidatos()" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;color:var(--color-warm-intention);font-size:12px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:20px;padding:0;font-family:var(--fonte-apoio)">← Voltar</button>
               <div class="cand-detail-grid" id="cand-detalhe-content"></div>
             </div>
             <div id="cand-list-view">
-              <div class="rec-toolbar"><h3>Candidaturas</h3></div>
               <div class="cand-filters">
                 <input type="text" class="form-field" placeholder="Buscar candidato…" id="busca-cand" oninput="renderCandidatos()"/>
                 <select class="form-field" id="filtro-cand-vaga" onchange="renderCandidatos()"><option value="">Todas as vagas</option></select>
@@ -522,6 +558,66 @@
     setTimeout(function(){ URL.revokeObjectURL(url); }, 10000);
   }
 
+  // ── VIEW MODE ──
+  var viewMode = 'lista';
+  function setViewMode(mode) {
+    viewMode = mode;
+    document.getElementById('btn-view-lista').classList.toggle('active', mode === 'lista');
+    document.getElementById('btn-view-kanban').classList.toggle('active', mode === 'kanban');
+    document.getElementById('cand-list-view').style.display = mode === 'lista' ? '' : 'none';
+    document.getElementById('kanban-view').style.display = mode === 'kanban' ? 'block' : 'none';
+    if(mode === 'kanban') renderKanban();
+  }
+
+  // ── KANBAN ──
+  var KANBAN_COLS = [
+    {id:'triagem',label:'Triagem'},{id:'entrevista',label:'Entrevista RH'},
+    {id:'gestor',label:'Gestor'},{id:'teste',label:'Teste'},
+    {id:'aprovado',label:'Aprovado'},{id:'reprovado',label:'Reprovado'}
+  ];
+  var kDragId = null;
+
+  function renderKanban() {
+    var board = document.getElementById('kanban-board');
+    board.innerHTML = KANBAN_COLS.map(function(col) {
+      var cards = candidaturasData.filter(function(c){ return (c.status||'triagem') === col.id; });
+      return '<div class="kanban-col" data-status="' + col.id + '" ' +
+        'ondragover="kDragOver(event)" ondragleave="kDragLeave(event)" ondrop="kDrop(event)">' +
+        '<div class="kanban-col-title">' + col.label + ' <span style="opacity:.5">(' + cards.length + ')</span></div>' +
+        cards.map(function(c){
+          return '<div class="kanban-card" draggable="true" data-id="' + c.id + '" ' +
+            'ondragstart="kDragStart(event)" ondragend="kDragEnd(event)" ' +
+            'onclick="abrirCandidatoKanban(\'' + c.id + '\')">' +
+            '<div class="kanban-card-name">' + escHtml(c.nome) + '</div>' +
+            '<div class="kanban-card-vaga">' + escHtml(c.vaga_titulo||'') + '</div>' +
+          '</div>';
+        }).join('') +
+      '</div>';
+    }).join('');
+  }
+
+  function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function kDragStart(e){ kDragId=e.currentTarget.dataset.id; e.currentTarget.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; }
+  function kDragEnd(e){ e.currentTarget.classList.remove('dragging'); document.querySelectorAll('.kanban-col').forEach(function(c){ c.classList.remove('drag-over'); }); }
+  function kDragOver(e){ e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+  function kDragLeave(e){ e.currentTarget.classList.remove('drag-over'); }
+  async function kDrop(e){
+    e.preventDefault();
+    var col=e.currentTarget; col.classList.remove('drag-over');
+    var novoStatus=col.dataset.status;
+    if(!kDragId) return;
+    var c=candidaturasData.find(function(x){ return x.id===kDragId; });
+    if(!c || c.status===novoStatus) return;
+    var { error }=await supabase.from('candidaturas').update({status:novoStatus}).eq('id',kDragId);
+    if(!error){ c.status=novoStatus; renderKanban(); }
+  }
+  function abrirCandidatoKanban(id){
+    setViewMode('lista');
+    document.getElementById('cand-list-view').style.display='none';
+    document.getElementById('cand-detalhe-view').style.display='block';
+    abrirCandidato(id);
+  }
+
   // ── INIT ──
   async function loadRH() {
     var [rVagas, rCands, rTalentos] = await Promise.all([
@@ -535,6 +631,7 @@
     renderVagasRH();
     popularFiltroVagas();
     renderCandidatos();
+    document.getElementById('cand-view-controls').style.display = 'block';
     renderTalentos();
   }
 
