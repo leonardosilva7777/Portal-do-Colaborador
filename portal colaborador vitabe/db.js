@@ -636,7 +636,16 @@ document.addEventListener('DOMContentLoaded', function() {
   if (_sessaoCache.role === 'admin') {
     document.querySelectorAll('.nav-admin-only').forEach(function(el) { el.style.display = ''; });
 
-    // Link "Painel Admin" no dropdown
+    // Injeta "Painel Admin" no sidebar se não existir (páginas sem o item no HTML)
+    var sidebarNav = document.querySelector('.sidebar-nav');
+    if (sidebarNav && !sidebarNav.querySelector('a[href="admin.html"]')) {
+      var li = document.createElement('li');
+      li.className = 'nav-admin-only';
+      li.innerHTML = '<a href="admin.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg></span> Painel Admin</a>';
+      sidebarNav.appendChild(li);
+    }
+
+    // Link "Painel Admin" no dropdown do usuário
     var menu = document.querySelector('.user-dropdown-menu');
     if (menu && !menu.querySelector('a[href="admin.html"]')) {
       var link = document.createElement('a');
