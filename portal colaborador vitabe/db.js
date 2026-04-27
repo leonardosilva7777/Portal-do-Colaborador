@@ -197,6 +197,20 @@ var EMAILS_LICENCIADOS = {
 
 // ── CACHE LOCAL DA SESSÃO ──────────────────────────────────────────────────────
 var _sessaoCache = null;
+var _SESSION_KEY = 'portal_rb_sessao';
+
+// Restaura sessão do sessionStorage sincronamente (elimina flicker de nome/nav)
+try {
+  var _s = sessionStorage.getItem(_SESSION_KEY);
+  if (_s) _sessaoCache = JSON.parse(_s);
+} catch(e) {}
+
+function _salvarSessaoStorage() {
+  try {
+    if (_sessaoCache) sessionStorage.setItem(_SESSION_KEY, JSON.stringify(_sessaoCache));
+    else sessionStorage.removeItem(_SESSION_KEY);
+  } catch(e) {}
+}
 
 // ── INICIALIZAÇÃO ──────────────────────────────────────────────────────────────
 
@@ -234,6 +248,7 @@ async function dbInit() {
         email: profile.email,
         role:  profile.role
       };
+      _salvarSessaoStorage();
     }
 
     // Carrega dados dinâmicos do Supabase (comunicados, eventos, etc.)
@@ -280,6 +295,7 @@ function dbIsAdmin() {
 async function dbEncerrarSessao() {
   await supabase.auth.signOut();
   _sessaoCache = null;
+  _salvarSessaoStorage();
   window.location.href = 'login.html';
 }
 
@@ -557,6 +573,7 @@ async function dbRedefinirSenha(novaSenha) {
   // Deslogar após redefinir para forçar novo login
   await supabase.auth.signOut();
   _sessaoCache = null;
+  _salvarSessaoStorage();
   return 'OK';
 }
 
@@ -605,16 +622,29 @@ function getNomeLicenciado(email) {
 }
 
 // ── AUTO-INICIALIZAÇÃO DOM ────────────────────────────────────────────────────
+// Aplica nome, avatar e nav admin imediatamente do cache (sem esperar async)
 document.addEventListener('DOMContentLoaded', function() {
-  if (!dbIsAdmin()) return;
-  var menu = document.querySelector('.user-dropdown-menu');
-  if (!menu) return;
-  var existing = menu.querySelector('a[href="admin.html"]');
-  if (existing) return;
-  var link = document.createElement('a');
-  link.href = 'admin.html';
-  link.textContent = 'Painel Admin';
-  link.style.color = '#EA5339';
-  link.style.fontWeight = '600';
-  menu.appendChild(link);
+  if (!_sessaoCache) return;
+
+  // Nome e avatar
+  var nameEl = document.getElementById('userName');
+  var avatarEl = document.getElementById('userAvatar');
+  if (nameEl) nameEl.textContent = _sessaoCache.nome;
+  if (avatarEl) avatarEl.textContent = _sessaoCache.nome.charAt(0).toUpperCase();
+
+  // Itens de nav admin
+  if (_sessaoCache.role === 'admin') {
+    document.querySelectorAll('.nav-admin-only').forEach(function(el) { el.style.display = ''; });
+
+    // Link "Painel Admin" no dropdown
+    var menu = document.querySelector('.user-dropdown-menu');
+    if (menu && !menu.querySelector('a[href="admin.html"]')) {
+      var link = document.createElement('a');
+      link.href = 'admin.html';
+      link.textContent = 'Painel Admin';
+      link.style.color = '#EA5339';
+      link.style.fontWeight = '600';
+      menu.appendChild(link);
+    }
+  }
 });
