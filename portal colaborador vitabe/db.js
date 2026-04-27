@@ -255,6 +255,9 @@ async function dbInit() {
     if (_sessaoCache && typeof dbInitData === 'function') {
       await dbInitData();
     }
+
+    // Injeta nav admin após carregar perfil (cobre o caso sem sessionStorage cache)
+    _injetarNavAdmin();
   }
   return _sessaoCache;
 }
@@ -621,47 +624,50 @@ function getNomeLicenciado(email) {
   return EMAILS_LICENCIADOS[email.trim().toLowerCase()] || null;
 }
 
-// ── AUTO-INICIALIZAÇÃO DOM ────────────────────────────────────────────────────
-// Aplica nome, avatar e nav admin imediatamente do cache (sem esperar async)
-document.addEventListener('DOMContentLoaded', function() {
-  if (!_sessaoCache) return;
+// ── INJEÇÃO DE NAV ADMIN ──────────────────────────────────────────────────────
+// Pode ser chamado tanto do DOMContentLoaded (cache sessionStorage) quanto
+// após dbInit() completar (primeiro carregamento sem cache).
+function _injetarNavAdmin() {
+  if (!_sessaoCache || _sessaoCache.role !== 'admin') return;
 
-  // Nome e avatar
-  var nameEl = document.getElementById('userName');
-  var avatarEl = document.getElementById('userAvatar');
-  if (nameEl) nameEl.textContent = _sessaoCache.nome;
-  if (avatarEl) avatarEl.textContent = _sessaoCache.nome.charAt(0).toUpperCase();
+  document.querySelectorAll('.nav-admin-only').forEach(function(el) { el.style.display = ''; });
 
-  // Itens de nav admin
-  if (_sessaoCache.role === 'admin') {
-    document.querySelectorAll('.nav-admin-only').forEach(function(el) { el.style.display = ''; });
-
-    // Injeta "Painel Admin" no sidebar se não existir (páginas sem o item no HTML)
-    var sidebarNav = document.querySelector('.sidebar-nav');
-    if (sidebarNav && !sidebarNav.querySelector('a[href="admin.html"]')) {
+  var sidebarNav = document.querySelector('.sidebar-nav');
+  if (sidebarNav) {
+    if (!sidebarNav.querySelector('a[href="admin.html"]')) {
       var li = document.createElement('li');
       li.className = 'nav-admin-only';
       li.innerHTML = '<a href="admin.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg></span> Painel Admin</a>';
       sidebarNav.appendChild(li);
     }
-
-    // Injeta "Recrutamento" no sidebar se não existir
-    if (sidebarNav && !sidebarNav.querySelector('a[href="recrutamento.html"]')) {
+    if (!sidebarNav.querySelector('a[href="recrutamento.html"]')) {
       var liRec = document.createElement('li');
       liRec.className = 'nav-admin-only';
       liRec.innerHTML = '<a href="recrutamento.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-2 .89-2 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg></span> Recrutamento</a>';
       sidebarNav.appendChild(liRec);
     }
-
-    // Link "Painel Admin" no dropdown do usuário
-    var menu = document.querySelector('.user-dropdown-menu');
-    if (menu && !menu.querySelector('a[href="admin.html"]')) {
-      var link = document.createElement('a');
-      link.href = 'admin.html';
-      link.textContent = 'Painel Admin';
-      link.style.color = '#EA5339';
-      link.style.fontWeight = '600';
-      menu.appendChild(link);
-    }
   }
+
+  var menu = document.querySelector('.user-dropdown-menu');
+  if (menu && !menu.querySelector('a[href="admin.html"]')) {
+    var link = document.createElement('a');
+    link.href = 'admin.html';
+    link.textContent = 'Painel Admin';
+    link.style.color = '#EA5339';
+    link.style.fontWeight = '600';
+    menu.appendChild(link);
+  }
+}
+
+// ── AUTO-INICIALIZAÇÃO DOM ────────────────────────────────────────────────────
+// Aplica nome, avatar e nav admin imediatamente do cache (sem esperar async)
+document.addEventListener('DOMContentLoaded', function() {
+  if (!_sessaoCache) return;
+
+  var nameEl = document.getElementById('userName');
+  var avatarEl = document.getElementById('userAvatar');
+  if (nameEl) nameEl.textContent = _sessaoCache.nome;
+  if (avatarEl) avatarEl.textContent = _sessaoCache.nome.charAt(0).toUpperCase();
+
+  _injetarNavAdmin();
 });
