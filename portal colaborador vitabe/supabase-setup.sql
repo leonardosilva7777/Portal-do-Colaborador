@@ -200,3 +200,87 @@ CREATE POLICY "secoes_insert" ON conteudo_secoes FOR INSERT WITH CHECK (is_admin
 CREATE POLICY "secoes_update" ON conteudo_secoes FOR UPDATE USING (is_admin());
 CREATE POLICY "secoes_delete" ON conteudo_secoes FOR DELETE USING (is_admin());
 GRANT SELECT, INSERT, UPDATE, DELETE ON conteudo_secoes TO authenticated;
+
+-- ============================================================
+-- PARTE 3: Módulo de Recrutamento
+-- ============================================================
+
+-- Vagas de emprego (admin gerencia, público lê)
+CREATE TABLE IF NOT EXISTS vagas (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  titulo TEXT NOT NULL DEFAULT '',
+  departamento TEXT DEFAULT '',
+  cidade TEXT DEFAULT '',
+  salario TEXT DEFAULT '',
+  modelo TEXT DEFAULT 'Presencial',
+  tipo_contrato TEXT DEFAULT 'CLT',
+  descricao TEXT DEFAULT '',
+  requisitos TEXT DEFAULT '',
+  beneficios TEXT DEFAULT '',
+  ativa BOOLEAN DEFAULT true,
+  criado_em TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE vagas ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "vagas_select_public"  ON vagas FOR SELECT USING (true);
+CREATE POLICY "vagas_insert_admin"   ON vagas FOR INSERT WITH CHECK (is_admin());
+CREATE POLICY "vagas_update_admin"   ON vagas FOR UPDATE USING (is_admin());
+CREATE POLICY "vagas_delete_admin"   ON vagas FOR DELETE USING (is_admin());
+GRANT SELECT ON vagas TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON vagas TO authenticated;
+
+-- Candidaturas (público insere, admin lê/gerencia)
+CREATE TABLE IF NOT EXISTS candidaturas (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  vaga_id UUID REFERENCES vagas(id) ON DELETE SET NULL,
+  vaga_titulo TEXT DEFAULT '',
+  nome TEXT DEFAULT '',
+  email TEXT DEFAULT '',
+  telefone TEXT DEFAULT '',
+  linkedin TEXT DEFAULT '',
+  pretensao TEXT DEFAULT '',
+  disponibilidade TEXT DEFAULT '',
+  modelo_preferencia TEXT DEFAULT '',
+  experiencia TEXT DEFAULT '',
+  curriculo_url TEXT DEFAULT '',
+  curriculo_nome TEXT DEFAULT '',
+  status TEXT DEFAULT 'triagem',
+  observacoes TEXT DEFAULT '',
+  criado_em TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE candidaturas ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "candidaturas_insert_public" ON candidaturas FOR INSERT WITH CHECK (true);
+CREATE POLICY "candidaturas_select_admin"  ON candidaturas FOR SELECT USING (is_admin());
+CREATE POLICY "candidaturas_update_admin"  ON candidaturas FOR UPDATE USING (is_admin());
+CREATE POLICY "candidaturas_delete_admin"  ON candidaturas FOR DELETE USING (is_admin());
+GRANT INSERT ON candidaturas TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON candidaturas TO authenticated;
+
+-- Banco de Talentos (público insere, admin lê/gerencia)
+CREATE TABLE IF NOT EXISTS banco_talentos (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  nome TEXT DEFAULT '',
+  email TEXT DEFAULT '',
+  telefone TEXT DEFAULT '',
+  cidade TEXT DEFAULT '',
+  area_interesse TEXT DEFAULT '',
+  curriculo_url TEXT DEFAULT '',
+  curriculo_nome TEXT DEFAULT '',
+  mensagem TEXT DEFAULT '',
+  criado_em TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE banco_talentos ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "banco_talentos_insert_public" ON banco_talentos FOR INSERT WITH CHECK (true);
+CREATE POLICY "banco_talentos_select_admin"  ON banco_talentos FOR SELECT USING (is_admin());
+CREATE POLICY "banco_talentos_update_admin"  ON banco_talentos FOR UPDATE USING (is_admin());
+CREATE POLICY "banco_talentos_delete_admin"  ON banco_talentos FOR DELETE USING (is_admin());
+GRANT INSERT ON banco_talentos TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON banco_talentos TO authenticated;
+
+-- ============================================================
+-- STORAGE: Criar bucket "curriculos" no Supabase Dashboard
+-- Storage → New bucket → "curriculos" → Public: true
+-- Policy: permitir upload para anon (INSERT) e authenticated
+-- ============================================================

@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Recrutamento — Portal do Colaborador</title>
+  <link rel="stylesheet" href="portal.css"/>
+  <link rel="stylesheet" href="mobile-app.css"/>
+  <style>
+    .rec-tabs { display:flex; gap:0; border-bottom:2px solid var(--cor-borda); margin-bottom:28px; }
+    .rec-tab {
+      background:none; border:none; cursor:pointer;
+      font-family:var(--fonte-apoio); font-size:13px; font-weight:500;
+      letter-spacing:.06em; text-transform:uppercase;
+      padding:12px 20px; color:var(--cor-texto-secundario);
+      border-bottom:2px solid transparent; margin-bottom:-2px;
+      transition:all .2s;
+    }
+    .rec-tab.active { color:var(--color-warm-intention); border-bottom-color:var(--color-warm-intention); }
+    .rec-tab:hover { color:var(--color-warm-intention); }
+    .rec-panel { display:none; }
+    .rec-panel.active { display:block; animation:fadeInUp .3s ease; }
+    @keyframes fadeInUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+    /* ── Toolbar ── */
+    .rec-toolbar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px; }
+    .rec-toolbar h3 { font-family:var(--fonte-primaria); font-size:20px; font-weight:300; text-transform:uppercase; }
+    .btn-add-rec {
+      display:flex; align-items:center; gap:8px;
+      background:var(--color-warm-intention); color:#fff; border:none; cursor:pointer;
+      font-family:var(--fonte-apoio); font-size:12px; font-weight:600;
+      letter-spacing:.07em; text-transform:uppercase;
+      padding:10px 20px; border-radius:var(--radius-pill); transition:opacity .2s;
+    }
+    .btn-add-rec:hover { opacity:.88; }
+
+    /* ── Form Panel ── */
+    .form-panel-rec {
+      background:var(--cor-branco); border:1px solid var(--cor-borda);
+      border-radius:var(--radius-lg); padding:24px; margin-bottom:24px;
+      display:none;
+    }
+    .form-panel-rec.open { display:block; }
+    .form-grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .form-full { grid-column:1/-1; }
+    .form-group-rec { display:flex; flex-direction:column; gap:5px; }
+    .form-group-rec label {
+      font-family:var(--fonte-secundaria); font-size:11px; font-weight:500;
+      text-transform:uppercase; letter-spacing:.07em; color:var(--cor-texto-secundario);
+    }
+    .form-field {
+      font-family:var(--fonte-apoio); font-size:14px; color:var(--cor-texto-principal);
+      border:1.5px solid var(--cor-borda); border-radius:var(--radius-md);
+      background:var(--cor-branco); padding:10px 13px; width:100%;
+      outline:none; transition:border-color .2s;
+    }
+    .form-field:focus { border-color:var(--color-warm-intention); }
+    textarea.form-field { min-height:80px; resize:vertical; }
+    select.form-field { cursor:pointer; }
+    .form-actions { display:flex; gap:10px; margin-top:16px; }
+    .btn-sec-rec {
+      background:var(--cor-fundo); border:1.5px solid var(--cor-borda);
+      color:var(--cor-texto-principal); cursor:pointer;
+      font-family:var(--fonte-apoio); font-size:12px; font-weight:500;
+      padding:9px 18px; border-radius:var(--radius-pill); transition:all .15s;
+    }
+    .btn-sec-rec:hover { border-color:var(--color-warm-intention); color:var(--color-warm-intention); }
+
+    /* ── Vaga Cards RH ── */
+    .vaga-rh-card {
+      background:var(--cor-branco); border:1px solid var(--cor-borda);
+      border-radius:var(--radius-lg); margin-bottom:10px;
+      overflow:hidden; transition:box-shadow .2s;
+    }
+    .vaga-rh-card:hover { box-shadow:var(--shadow-md); }
+    .vaga-rh-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:16px 20px; cursor:pointer;
+    }
+    .vaga-rh-left { display:flex; align-items:center; gap:12px; }
+    .vaga-dot { width:10px; height:10px; border-radius:50%; background:var(--cor-sucesso,#c3d72c); flex-shrink:0; }
+    .vaga-dot.off { background:var(--cor-borda); }
+    .vaga-rh-info h4 { font-size:15px; font-weight:600; color:var(--cor-texto-principal); }
+    .vaga-rh-info p { font-size:12px; color:var(--cor-texto-secundario); margin-top:2px; }
+    .vaga-rh-right { display:flex; align-items:center; gap:16px; }
+    .cand-badge {
+      background:rgba(234,83,57,.1); color:var(--color-warm-intention);
+      font-size:12px; font-weight:600; padding:4px 10px; border-radius:20px;
+    }
+    .rh-btn-sm {
+      background:var(--cor-fundo); border:1.5px solid var(--cor-borda);
+      color:var(--cor-texto-principal); cursor:pointer;
+      font-family:var(--fonte-apoio); font-size:11px; font-weight:500;
+      padding:6px 12px; border-radius:var(--radius-pill); transition:all .15s;
+    }
+    .rh-btn-sm:hover { border-color:var(--color-warm-intention); color:var(--color-warm-intention); }
+    .rh-btn-sm.danger:hover { border-color:#dc2626; color:#dc2626; }
+
+    /* ── Candidatos list ── */
+    .cand-filters { display:grid; grid-template-columns:1fr 200px 160px; gap:12px; margin-bottom:20px; }
+    .cand-card {
+      background:var(--cor-branco); border:1px solid var(--cor-borda);
+      border-radius:var(--radius-lg); padding:16px 20px; margin-bottom:8px;
+      display:flex; align-items:center; justify-content:space-between;
+      cursor:pointer; transition:all .2s;
+    }
+    .cand-card:hover { border-color:var(--color-warm-intention); box-shadow:var(--shadow-sm); }
+    .cand-card-left { display:flex; align-items:center; gap:14px; }
+    .cand-avatar {
+      width:38px; height:38px; border-radius:50%;
+      background:var(--color-warm-intention); display:flex; align-items:center; justify-content:center;
+      font-weight:700; font-size:15px; color:#fff; flex-shrink:0;
+    }
+    .cand-info h4 { font-size:14px; font-weight:600; color:var(--cor-texto-principal); }
+    .cand-info p { font-size:12px; color:var(--cor-texto-secundario); margin-top:2px; }
+    .status-badge {
+      font-size:10px; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
+      padding:3px 10px; border-radius:20px;
+    }
+    .s-triagem { background:rgba(110,170,191,.15); color:#2a6a80; }
+    .s-entrevista { background:rgba(43,36,34,.08); color:var(--cor-texto-principal); }
+    .s-gestor { background:rgba(110,170,191,.25); color:#1a5a70; }
+    .s-teste { background:rgba(241,143,51,.15); color:#a05800; }
+    .s-aprovado { background:rgba(195,215,44,.2); color:#4a6000; }
+    .s-reprovado { background:rgba(234,83,57,.12); color:var(--color-warm-intention); }
+
+    /* ── Cand detalhe ── */
+    .cand-detail-grid { display:grid; grid-template-columns:1fr 280px; gap:24px; align-items:start; }
+    .detail-card {
+      background:var(--cor-branco); border:1px solid var(--cor-borda);
+      border-radius:var(--radius-lg); padding:22px; margin-bottom:16px;
+    }
+    .detail-card h4 {
+      font-family:var(--fonte-secundaria); font-size:11px; font-weight:600;
+      text-transform:uppercase; letter-spacing:.1em; color:var(--cor-texto-secundario);
+      margin-bottom:14px;
+    }
+    .detail-fields { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .detail-field-label { font-size:11px; color:var(--cor-texto-secundario); text-transform:uppercase; letter-spacing:.06em; margin-bottom:3px; }
+    .detail-field-val { font-size:14px; font-weight:500; color:var(--cor-texto-principal); }
+    .status-list { display:flex; flex-direction:column; gap:6px; }
+    .status-opt {
+      display:flex; align-items:center; gap:10px; padding:9px 13px;
+      border-radius:var(--radius-md); border:1.5px solid var(--cor-borda);
+      background:var(--cor-branco); cursor:pointer;
+      font-family:var(--fonte-apoio); font-size:13px; color:var(--cor-texto-secundario);
+      transition:all .15s; width:100%; text-align:left;
+    }
+    .status-opt.active { border-color:var(--color-warm-intention); background:rgba(234,83,57,.05); color:var(--color-warm-intention); }
+    .status-opt:hover { border-color:var(--color-warm-intention); }
+    .curriculo-link {
+      display:inline-flex; align-items:center; gap:8px;
+      background:var(--cor-texto-principal); color:#fff;
+      text-decoration:none; font-family:var(--fonte-apoio); font-size:12px;
+      font-weight:600; letter-spacing:.07em; text-transform:uppercase;
+      padding:9px 18px; border-radius:var(--radius-pill); transition:background .2s;
+    }
+    .curriculo-link:hover { background:var(--color-warm-intention); }
+
+    /* ── Talent cards ── */
+    .talent-card {
+      background:var(--cor-branco); border:1px solid var(--cor-borda);
+      border-radius:var(--radius-lg); padding:18px 22px; margin-bottom:8px;
+      display:flex; align-items:center; justify-content:space-between;
+      cursor:pointer; transition:all .2s;
+    }
+    .talent-card:hover { border-color:var(--color-warm-intention); box-shadow:var(--shadow-sm); }
+
+    /* ── Empty state ── */
+    .empty-rec { text-align:center; padding:48px 20px; color:var(--cor-texto-secundario); }
+    .empty-rec p { font-size:15px; margin-top:8px; }
+  </style>
+</head>
+<body>
+
+  <!-- Header fixo -->
+  <div class="user-bar" role="banner">
+    <div class="user-dropdown">
+      <div class="user-dropdown-trigger user-info">
+        <span class="user-avatar" id="userAvatar">A</span>
+        <span class="user-name" id="userName">Admin</span>
+      </div>
+      <div class="user-dropdown-menu"><a href="meus-dados.html">Meus dados</a></div>
+    </div>
+    <button type="button" class="btn-logout" onclick="logout()">Sair</button>
+  </div>
+
+  <div class="app-layout">
+    <!-- Sidebar injetada por db.js -->
+    <aside class="sidebar" role="navigation" aria-label="Navegação principal">
+      <div class="sidebar-logo">
+        <a href="index.html" aria-label="Renova Be — Início">
+          <img src="Imagens%20para%20Usar/logo.png" alt="Renova Be" class="brand-logo"
+            onerror="this.style.display='none'; this.nextElementSibling.classList.add('visible');"/>
+          <span class="logo-fallback" aria-hidden="true">RENOVA BE</span>
+        </a>
+      </div>
+      <ul class="sidebar-nav">
+        <li><a href="index.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></span> Início</a></li>
+        <li><a href="comunicados.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z"/></svg></span> Mural de Comunicados</a></li>
+        <li><a href="empresa.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 7V3H2v18h20V7H12z"/></svg></span> Empresa</a></li>
+        <li><a href="beneficios.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.11-.31.18-.65.18-1 0-1.66-1.34-3-3-3-1.05 0-1.96.54-2.5 1.35l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2z"/></svg></span> Benefícios</a></li>
+        <li><a href="politicas.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6z"/></svg></span> Políticas</a></li>
+        <li><a href="calendario.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/></svg></span> Calendário</a></li>
+        <li><a href="fale-gg.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg></span> Fale com o G&amp;G</a></li>
+        <li class="nav-divider"></li>
+        <li><a href="relatar-problema.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg></span> Relatar Problema</a></li>
+        <li class="nav-admin-only" style="display:none"><a href="mensagens-reports.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.89 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg></span> Mensagens e Reports</a></li>
+        <li class="nav-admin-only" style="display:none"><a href="admin.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg></span> Painel Admin</a></li>
+        <li class="nav-admin-only" style="display:none"><a href="recrutamento.html" class="active"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-2 .89-2 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg></span> Recrutamento</a></li>
+      </ul>
+    </aside>
+
+    <main class="main-wrap">
+      <div class="container">
+        <div class="main-content">
+
+          <div style="margin-bottom:24px">
+            <h1 style="font-family:var(--fonte-primaria);font-size:28px;font-weight:300;text-transform:uppercase;letter-spacing:.04em">Recrutamento</h1>
+            <p style="font-size:14px;color:var(--cor-texto-secundario);margin-top:4px">Gerencie vagas, candidatos e banco de talentos.</p>
+          </div>
+
+          <!-- Tabs -->
+          <div class="rec-tabs">
+            <button class="rec-tab active" onclick="switchTab('vagas',this)">Vagas</button>
+            <button class="rec-tab" onclick="switchTab('candidatos',this)">Candidaturas</button>
+            <button class="rec-tab" onclick="switchTab('talentos',this)">Banco de Talentos</button>
+          </div>
+
+          <!-- ══ TAB: VAGAS ══ -->
+          <div class="rec-panel active" id="tab-vagas">
+            <div class="rec-toolbar">
+              <h3>Gestão de Vagas</h3>
+              <button class="btn-add-rec" onclick="toggleVagaForm()">+ Nova Vaga</button>
+            </div>
+            <div class="form-panel-rec" id="vaga-form-panel">
+              <h4 style="font-family:var(--fonte-primaria);font-size:16px;font-weight:400;text-transform:uppercase;margin-bottom:18px" id="vaga-form-title">Nova Vaga</h4>
+              <div class="form-grid-2">
+                <div class="form-group-rec"><label>Título da Vaga</label><input type="text" class="form-field" id="f-titulo" placeholder="Ex: Analista de Marketing"/></div>
+                <div class="form-group-rec"><label>Departamento</label><input type="text" class="form-field" id="f-depto" placeholder="Ex: Marketing"/></div>
+                <div class="form-group-rec"><label>Cidade</label><input type="text" class="form-field" id="f-cidade" placeholder="Ex: São Paulo"/></div>
+                <div class="form-group-rec"><label>Salário</label><input type="text" class="form-field" id="f-salario" placeholder="Ex: R$ 5.000 – R$ 7.000"/></div>
+                <div class="form-group-rec"><label>Modelo</label><select class="form-field" id="f-modelo"><option>Presencial</option><option>Remoto</option><option>Híbrido</option></select></div>
+                <div class="form-group-rec"><label>Tipo de Contrato</label><select class="form-field" id="f-tipo"><option>CLT</option><option>PJ</option><option>Estágio</option><option>Freelance</option></select></div>
+                <div class="form-group-rec form-full"><label>Descrição</label><textarea class="form-field" id="f-desc" rows="3" placeholder="Descreva o contexto e responsabilidades…"></textarea></div>
+                <div class="form-group-rec form-full"><label>Requisitos (um por linha)</label><textarea class="form-field" id="f-req" rows="3" placeholder="Ex: 3 anos de experiência&#10;Inglês intermediário"></textarea></div>
+                <div class="form-group-rec form-full"><label>Benefícios (separados por vírgula)</label><input type="text" class="form-field" id="f-benef" placeholder="Ex: Plano de saúde, Vale-refeição, Gympass"/></div>
+              </div>
+              <div class="form-actions">
+                <button class="btn-add-rec" onclick="salvarVaga()">Salvar Vaga</button>
+                <button class="btn-sec-rec" onclick="toggleVagaForm()">Cancelar</button>
+              </div>
+            </div>
+            <div id="vagas-rh-list"><div class="empty-rec"><p>Carregando vagas…</p></div></div>
+          </div>
+
+          <!-- ══ TAB: CANDIDATOS ══ -->
+          <div class="rec-panel" id="tab-candidatos">
+            <div id="cand-detalhe-view" style="display:none">
+              <button onclick="voltarCandidatos()" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;color:var(--color-warm-intention);font-size:12px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:20px;padding:0;font-family:var(--fonte-apoio)">← Voltar</button>
+              <div class="cand-detail-grid" id="cand-detalhe-content"></div>
+            </div>
+            <div id="cand-list-view">
+              <div class="rec-toolbar"><h3>Candidaturas</h3></div>
+              <div class="cand-filters">
+                <input type="text" class="form-field" placeholder="Buscar candidato…" id="busca-cand" oninput="renderCandidatos()"/>
+                <select class="form-field" id="filtro-cand-vaga" onchange="renderCandidatos()"><option value="">Todas as vagas</option></select>
+                <select class="form-field" id="filtro-cand-status" onchange="renderCandidatos()">
+                  <option value="">Todos os status</option>
+                  <option value="triagem">Triagem</option>
+                  <option value="entrevista">Entrevista RH</option>
+                  <option value="gestor">Entrevista Gestor</option>
+                  <option value="teste">Teste</option>
+                  <option value="aprovado">Aprovado</option>
+                  <option value="reprovado">Reprovado</option>
+                </select>
+              </div>
+              <div id="candidatos-list"><div class="empty-rec"><p>Carregando candidaturas…</p></div></div>
+            </div>
+          </div>
+
+          <!-- ══ TAB: BANCO DE TALENTOS ══ -->
+          <div class="rec-panel" id="tab-talentos">
+            <div class="rec-toolbar">
+              <h3>Banco de Talentos</h3>
+              <span id="talentos-count" style="font-size:13px;color:var(--cor-texto-secundario)"></span>
+            </div>
+            <div id="talentos-list"><div class="empty-rec"><p>Carregando banco de talentos…</p></div></div>
+          </div>
+
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="db.js"></script>
+  <script src="data.js"></script>
+  <script>
+  'use strict';
+
+  var vagasRH = [];
+  var candidaturasData = [];
+  var talentosData = [];
+  var vagaEditId = null;
+
+  function switchTab(id, btn) {
+    document.querySelectorAll('.rec-panel').forEach(function(p){ p.classList.remove('active'); });
+    document.querySelectorAll('.rec-tab').forEach(function(b){ b.classList.remove('active'); });
+    document.getElementById('tab-' + id).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  // ── VAGAS ──
+  function toggleVagaForm(editId) {
+    var panel = document.getElementById('vaga-form-panel');
+    if(panel.classList.contains('open') && !editId) { panel.classList.remove('open'); vagaEditId = null; return; }
+    vagaEditId = editId || null;
+    document.getElementById('vaga-form-title').textContent = editId ? 'Editar Vaga' : 'Nova Vaga';
+    if(editId) {
+      var v = vagasRH.find(function(x){ return x.id === editId; });
+      if(v) {
+        document.getElementById('f-titulo').value = v.titulo||'';
+        document.getElementById('f-depto').value = v.departamento||'';
+        document.getElementById('f-cidade').value = v.cidade||'';
+        document.getElementById('f-salario').value = v.salario||'';
+        document.getElementById('f-modelo').value = v.modelo||'Presencial';
+        document.getElementById('f-tipo').value = v.tipo_contrato||'CLT';
+        document.getElementById('f-desc').value = v.descricao||'';
+        document.getElementById('f-req').value = v.requisitos||'';
+        document.getElementById('f-benef').value = v.beneficios||'';
+      }
+    } else {
+      ['f-titulo','f-depto','f-cidade','f-salario','f-desc','f-req','f-benef'].forEach(function(id){ document.getElementById(id).value=''; });
+    }
+    panel.classList.add('open');
+  }
+
+  async function salvarVaga() {
+    var titulo = document.getElementById('f-titulo').value.trim();
+    if(!titulo) { alert('Informe o título da vaga.'); return; }
+    var payload = {
+      titulo: titulo,
+      departamento: document.getElementById('f-depto').value.trim(),
+      cidade: document.getElementById('f-cidade').value.trim(),
+      salario: document.getElementById('f-salario').value.trim(),
+      modelo: document.getElementById('f-modelo').value,
+      tipo_contrato: document.getElementById('f-tipo').value,
+      descricao: document.getElementById('f-desc').value.trim(),
+      requisitos: document.getElementById('f-req').value.trim(),
+      beneficios: document.getElementById('f-benef').value.trim(),
+      ativa: true
+    };
+    var error;
+    if(vagaEditId) {
+      var res = await supabase.from('vagas').update(payload).eq('id', vagaEditId);
+      error = res.error;
+      if(!error) { var idx = vagasRH.findIndex(function(v){ return v.id===vagaEditId; }); if(idx!==-1) vagasRH[idx] = Object.assign(vagasRH[idx], payload); }
+    } else {
+      var res2 = await supabase.from('vagas').insert(payload).select().single();
+      error = res2.error;
+      if(!error && res2.data) vagasRH.unshift(res2.data);
+    }
+    if(error) { alert('Erro ao salvar vaga: ' + error.message); return; }
+    document.getElementById('vaga-form-panel').classList.remove('open');
+    vagaEditId = null;
+    renderVagasRH();
+  }
+
+  async function toggleVagaAtiva(id) {
+    var v = vagasRH.find(function(x){ return x.id===id; });
+    if(!v) return;
+    var nova = !v.ativa;
+    var { error } = await supabase.from('vagas').update({ ativa: nova }).eq('id', id);
+    if(!error) { v.ativa = nova; renderVagasRH(); }
+  }
+
+  async function excluirVaga(id) {
+    if(!confirm('Excluir esta vaga?')) return;
+    var { error } = await supabase.from('vagas').delete().eq('id', id);
+    if(!error) { vagasRH = vagasRH.filter(function(v){ return v.id!==id; }); renderVagasRH(); }
+  }
+
+  function renderVagasRH() {
+    var el = document.getElementById('vagas-rh-list');
+    if(!vagasRH.length) { el.innerHTML = '<div class="empty-rec"><p>Nenhuma vaga cadastrada.</p></div>'; return; }
+    el.innerHTML = vagasRH.map(function(v) {
+      var cnt = candidaturasData.filter(function(c){ return c.vaga_id===v.id; }).length;
+      return '<div class="vaga-rh-card">' +
+        '<div class="vaga-rh-header">' +
+          '<div class="vaga-rh-left">' +
+            '<div class="vaga-dot' + (v.ativa?'':' off') + '"></div>' +
+            '<div class="vaga-rh-info"><h4>' + v.titulo + '</h4><p>' + (v.departamento||'') + (v.cidade ? ' · ' + v.cidade : '') + ' · ' + (v.modelo||'') + '</p></div>' +
+          '</div>' +
+          '<div class="vaga-rh-right">' +
+            '<span class="cand-badge">' + cnt + ' candidato' + (cnt!==1?'s':'') + '</span>' +
+            '<button class="rh-btn-sm" onclick="event.stopPropagation();toggleVagaForm(\'' + v.id + '\')">' + (v.ativa?'Editar':'Editar') + '</button>' +
+            '<button class="rh-btn-sm" onclick="event.stopPropagation();toggleVagaAtiva(\'' + v.id + '\')">' + (v.ativa?'Desativar':'Ativar') + '</button>' +
+            '<button class="rh-btn-sm danger" onclick="event.stopPropagation();excluirVaga(\'' + v.id + '\')">Excluir</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  // ── CANDIDATOS ──
+  var STATUS_LABELS = { triagem:'Triagem', entrevista:'Entrevista RH', gestor:'Entrevista Gestor', teste:'Teste', aprovado:'Aprovado', reprovado:'Reprovado' };
+
+  function renderCandidatos() {
+    var busca = (document.getElementById('busca-cand').value||'').toLowerCase();
+    var vaga = document.getElementById('filtro-cand-vaga').value;
+    var status = document.getElementById('filtro-cand-status').value;
+    var filtered = candidaturasData.filter(function(c){
+      return (!busca || c.nome.toLowerCase().includes(busca) || (c.email||'').toLowerCase().includes(busca)) &&
+             (!vaga || c.vaga_id===vaga) &&
+             (!status || c.status===status);
+    });
+    var el = document.getElementById('candidatos-list');
+    if(!filtered.length) { el.innerHTML = '<div class="empty-rec"><p>Nenhuma candidatura encontrada.</p></div>'; return; }
+    el.innerHTML = filtered.map(function(c) {
+      var ini = (c.nome||'?')[0].toUpperCase();
+      var sClass = 's-' + (c.status||'triagem');
+      var sLabel = STATUS_LABELS[c.status] || c.status;
+      return '<div class="cand-card" onclick="abrirCandidato(\'' + c.id + '\')">' +
+        '<div class="cand-card-left">' +
+          '<div class="cand-avatar">' + ini + '</div>' +
+          '<div class="cand-info"><h4>' + c.nome + '</h4><p>' + (c.email||'') + ' · ' + (c.vaga_titulo||'') + '</p></div>' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:12px">' +
+          '<span style="font-size:12px;color:var(--cor-texto-secundario)">' + new Date(c.criado_em).toLocaleDateString('pt-BR') + '</span>' +
+          '<span class="status-badge ' + sClass + '">' + sLabel + '</span>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  function abrirCandidato(id) {
+    var c = candidaturasData.find(function(x){ return x.id===id; });
+    if(!c) return;
+    document.getElementById('cand-list-view').style.display = 'none';
+    document.getElementById('cand-detalhe-view').style.display = 'block';
+    var statusOpts = Object.entries(STATUS_LABELS).map(function(e){
+      return '<button class="status-opt' + (c.status===e[0]?' active':'') + '" onclick="atualizarStatus(\'' + c.id + '\',\'' + e[0] + '\')">' + e[1] + '</button>';
+    }).join('');
+    var curriculoBtn = c.curriculo_url ? '<a href="' + c.curriculo_url + '" target="_blank" class="curriculo-link">📄 Ver Currículo</a>' : '<span style="color:var(--cor-texto-secundario);font-size:13px">Nenhum anexo</span>';
+    document.getElementById('cand-detalhe-content').innerHTML =
+      '<div>' +
+        '<div class="detail-card">' +
+          '<h4>Dados Pessoais</h4>' +
+          '<div class="detail-fields">' +
+            '<div><div class="detail-field-label">Nome</div><div class="detail-field-val">' + c.nome + '</div></div>' +
+            '<div><div class="detail-field-label">E-mail</div><div class="detail-field-val">' + (c.email||'—') + '</div></div>' +
+            '<div><div class="detail-field-label">Telefone</div><div class="detail-field-val">' + (c.telefone||'—') + '</div></div>' +
+            '<div><div class="detail-field-label">LinkedIn</div><div class="detail-field-val">' + (c.linkedin||'—') + '</div></div>' +
+            '<div><div class="detail-field-label">Pretensão</div><div class="detail-field-val">' + (c.pretensao||'—') + '</div></div>' +
+            '<div><div class="detail-field-label">Disponibilidade</div><div class="detail-field-val">' + (c.disponibilidade||'—') + '</div></div>' +
+          '</div>' +
+        '</div>' +
+        (c.experiencia ? '<div class="detail-card"><h4>Experiência / Destaques</h4><p style="font-size:14px;color:#555;line-height:1.7">' + c.experiencia + '</p></div>' : '') +
+        '<div class="detail-card"><h4>Currículo</h4>' + curriculoBtn + '</div>' +
+      '</div>' +
+      '<div>' +
+        '<div class="detail-card"><h4>Vaga</h4><p style="font-size:15px;font-weight:600;margin-bottom:4px">' + (c.vaga_titulo||'—') + '</p><p style="font-size:12px;color:var(--cor-texto-secundario)">Candidatura em ' + new Date(c.criado_em).toLocaleDateString('pt-BR') + '</p></div>' +
+        '<div class="detail-card"><h4>Status do Processo</h4><div class="status-list">' + statusOpts + '</div></div>' +
+      '</div>';
+  }
+
+  async function atualizarStatus(id, novoStatus) {
+    var { error } = await supabase.from('candidaturas').update({ status: novoStatus }).eq('id', id);
+    if(error) return;
+    var c = candidaturasData.find(function(x){ return x.id===id; });
+    if(c) { c.status = novoStatus; abrirCandidato(id); }
+  }
+
+  function voltarCandidatos() {
+    document.getElementById('cand-detalhe-view').style.display = 'none';
+    document.getElementById('cand-list-view').style.display = 'block';
+    renderCandidatos();
+  }
+
+  function popularFiltroVagas() {
+    var sel = document.getElementById('filtro-cand-vaga');
+    sel.innerHTML = '<option value="">Todas as vagas</option>';
+    vagasRH.forEach(function(v){ sel.innerHTML += '<option value="' + v.id + '">' + v.titulo + '</option>'; });
+  }
+
+  // ── BANCO DE TALENTOS ──
+  function renderTalentos() {
+    var el = document.getElementById('talentos-list');
+    var cnt = document.getElementById('talentos-count');
+    if(cnt) cnt.textContent = talentosData.length + ' cadastro' + (talentosData.length!==1?'s':'');
+    if(!talentosData.length) { el.innerHTML = '<div class="empty-rec"><p>Nenhum cadastro no banco de talentos.</p></div>'; return; }
+    el.innerHTML = talentosData.map(function(t) {
+      return '<div class="talent-card">' +
+        '<div style="display:flex;align-items:center;gap:14px">' +
+          '<div class="cand-avatar" style="background:var(--cor-texto-principal)">' + (t.nome||'?')[0].toUpperCase() + '</div>' +
+          '<div><div style="font-size:14px;font-weight:600">' + t.nome + '</div><div style="font-size:12px;color:var(--cor-texto-secundario);margin-top:2px">' + (t.email||'') + (t.cidade?' · '+t.cidade:'') + (t.area_interesse?' · '+t.area_interesse:'') + '</div></div>' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:10px">' +
+          '<span style="font-size:12px;color:var(--cor-texto-secundario)">' + new Date(t.criado_em).toLocaleDateString('pt-BR') + '</span>' +
+          (t.curriculo_url ? '<a href="' + t.curriculo_url + '" target="_blank" class="curriculo-link" onclick="event.stopPropagation()">📄 Currículo</a>' : '') +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  // ── INIT ──
+  async function loadRH() {
+    var [rVagas, rCands, rTalentos] = await Promise.all([
+      supabase.from('vagas').select('*').order('criado_em', { ascending: false }),
+      supabase.from('candidaturas').select('*').order('criado_em', { ascending: false }),
+      supabase.from('banco_talentos').select('*').order('criado_em', { ascending: false })
+    ]);
+    vagasRH = rVagas.data || [];
+    candidaturasData = rCands.data || [];
+    talentosData = rTalentos.data || [];
+    renderVagasRH();
+    popularFiltroVagas();
+    renderCandidatos();
+    renderTalentos();
+  }
+
+  function logout() {
+    if(typeof dbEncerrarSessao === 'function') dbEncerrarSessao();
+    window.location.href = 'login.html';
+  }
+
+  (async function() {
+    await dbInit();
+    var sess = dbGetSessao();
+    if(!sess) { window.location.href = 'login.html'; return; }
+    if(sess.role !== 'admin') { window.location.href = 'index.html'; return; }
+    loadRH();
+  })();
+  </script>
+</body>
+</html>

@@ -645,6 +645,14 @@ document.addEventListener('DOMContentLoaded', function() {
       sidebarNav.appendChild(li);
     }
 
+    // Injeta "Recrutamento" no sidebar se não existir
+    if (sidebarNav && !sidebarNav.querySelector('a[href="recrutamento.html"]')) {
+      var liRec = document.createElement('li');
+      liRec.className = 'nav-admin-only';
+      liRec.innerHTML = '<a href="recrutamento.html"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-2 .89-2 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg></span> Recrutamento</a>';
+      sidebarNav.appendChild(liRec);
+    }
+
     // Link "Painel Admin" no dropdown do usuário
     var menu = document.querySelector('.user-dropdown-menu');
     if (menu && !menu.querySelector('a[href="admin.html"]')) {
