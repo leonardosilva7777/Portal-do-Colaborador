@@ -481,8 +481,7 @@ async function enviarCandidatura() {
     var path = 'curriculos/' + Date.now() + '_' + file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
     var { data: upData, error: upErr } = await db.storage.from('curriculos').upload(path, file);
     if(!upErr && upData) {
-      var { data: urlData } = db.storage.from('curriculos').getPublicUrl(upData.path);
-      curriculoUrl = urlData.publicUrl || '';
+      curriculoUrl = upData.path; // salva apenas o path; URL é gerada pelo admin via signed URL
     }
   }
 
@@ -553,8 +552,7 @@ async function enviarBancoTalentos() {
     var path = 'talentos/' + Date.now() + '_' + file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
     var { data: upData, error: upErr } = await db.storage.from('curriculos').upload(path, file);
     if(!upErr && upData) {
-      var { data: urlData } = db.storage.from('curriculos').getPublicUrl(upData.path);
-      curriculoUrl = urlData.publicUrl || '';
+      curriculoUrl = upData.path; // salva apenas o path; URL é gerada pelo admin via signed URL
     }
   }
 
