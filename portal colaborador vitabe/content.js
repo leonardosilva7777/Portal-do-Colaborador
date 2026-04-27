@@ -2,33 +2,55 @@
  * content.js — Portal do Colaborador Renova Be
  * Gestão de conteúdo editável pelo admin: links, documentos, texto.
  * Admins veem botão "Editar" em cada seção. Usuários comuns veem apenas o conteúdo.
- * Armazenamento: localStorage (chave portal_rb_content).
+ * Armazenamento: Supabase (tabela conteudo_secoes), com cache em memória.
  */
 
 'use strict';
 
 (function () {
 
-  // ── Armazenamento ─────────────────────────────────────────────────────────
+  // ── Cache de seções ───────────────────────────────────────────────────────
 
-  var STORE_KEY = 'portal_rb_content';
+  var _secCache = {};
+  var _secoesCarregadas = false;
 
-  function getAll() {
-    try { return JSON.parse(localStorage.getItem(STORE_KEY) || '{}'); } catch (e) { return {}; }
+  function _pageId() {
+    return location.pathname.split('/').pop().replace('.html', '') || 'index';
+  }
+
+  async function _carregarSecoes() {
+    if (_secoesCarregadas) return;
+    var pid = _pageId();
+    var { data } = await supabase
+      .from('conteudo_secoes')
+      .select('*')
+      .eq('page_id', pid);
+    if (data) {
+      data.forEach(function(s) {
+        if (!_secCache[s.page_id]) _secCache[s.page_id] = {};
+        _secCache[s.page_id][s.sec_id] = s.dados;
+      });
+    }
+    _secoesCarregadas = true;
   }
 
   function getSection(pageId, secId) {
-    var all = getAll();
-    return (all[pageId] && all[pageId][secId]) ? all[pageId][secId] : null;
+    return (_secCache[pageId] && _secCache[pageId][secId]) ? _secCache[pageId][secId] : null;
   }
 
-  function saveSection(pageId, secId, data) {
-    var all = getAll();
-    if (!all[pageId]) all[pageId] = {};
-    all[pageId][secId] = data;
-    try { localStorage.setItem(STORE_KEY, JSON.stringify(all)); } catch (e) {
-      alert('Erro ao salvar: armazenamento cheio. Tente remover documentos antigos.');
-    }
+  async function saveSection(pageId, secId, tipo, data) {
+    if (!_secCache[pageId]) _secCache[pageId] = {};
+    _secCache[pageId][secId] = data;
+
+    var sess = (typeof dbGetSessao === 'function') ? dbGetSessao() : null;
+    await supabase.from('conteudo_secoes').upsert({
+      page_id:        pageId,
+      sec_id:         secId,
+      tipo:           tipo,
+      dados:          data,
+      atualizado_em:  new Date().toISOString(),
+      atualizado_por: sess ? sess.id : null
+    }, { onConflict: 'page_id,sec_id' });
   }
 
   // ── Utilitários ───────────────────────────────────────────────────────────
@@ -56,10 +78,8 @@
     s.id = 'ce-styles';
     s.textContent = [
 
-      /* ── Contêiner editável ── */
       '[data-editable]{position:relative;}',
 
-      /* ── Botão editar ── */
       '.ce-edit-btn{',
         'position:absolute;top:10px;right:10px;z-index:5;',
         'display:inline-flex;align-items:center;gap:5px;',
@@ -75,7 +95,6 @@
       '.ce-edit-btn:hover{opacity:1!important;transform:translateY(-1px);}',
       '.ce-edit-btn svg{width:11px;height:11px;fill:#fff;flex-shrink:0;}',
 
-      /* ── Overlay + Modal ── */
       '.ce-overlay{',
         'position:fixed;inset:0;background:rgba(43,36,34,.5);',
         'z-index:2000;display:flex;align-items:center;justify-content:center;',
@@ -112,7 +131,6 @@
         'display:flex;justify-content:flex-end;gap:8px;flex-shrink:0;',
       '}',
 
-      /* ── Botões do modal ── */
       '.ce-btn{',
         'font-family:var(--fonte-secundaria,"Ayuthaya",sans-serif);',
         'font-size:12px;text-transform:uppercase;letter-spacing:.07em;',
@@ -124,7 +142,6 @@
       '.ce-btn-prim{background:#EA5339;color:#fff;}',
       '.ce-btn-danger{background:#DC3545;color:#fff;}',
 
-      /* ── Editor de links ── */
       '.ce-link-item{display:flex;gap:8px;margin-bottom:10px;align-items:flex-end;}',
       '.ce-link-col{display:flex;flex-direction:column;gap:3px;flex:1;}',
       '.ce-link-col label{font-size:10px;color:#999;text-transform:uppercase;letter-spacing:.06em;font-family:var(--fonte-secundaria,sans-serif);}',
@@ -152,7 +169,6 @@
       '}',
       '.ce-add-btn:hover{border-color:#EA5339;background:rgba(234,83,57,.04);}',
 
-      /* ── Upload de documentos ── */
       '.ce-upload-area{',
         'border:2px dashed #D9CCC0;border-radius:12px;',
         'padding:28px 16px;text-align:center;cursor:pointer;',
@@ -177,7 +193,6 @@
       '.ce-doc-name{flex:1;font-size:13px;color:#2B2422;font-family:var(--fonte-apoio,sans-serif);}',
       '.ce-doc-size{font-size:11px;color:#aaa;flex-shrink:0;font-family:var(--fonte-apoio,sans-serif);}',
 
-      /* ── Editor de texto ── */
       '.ce-textarea{',
         'width:100%;min-height:130px;padding:12px;',
         'border:1.5px solid #D9CCC0;border-radius:8px;',
@@ -187,7 +202,6 @@
       '.ce-textarea:focus{outline:none;border-color:#EA5339;}',
       '.ce-hint{font-size:12px;color:#aaa;margin-bottom:10px;font-family:var(--fonte-apoio,sans-serif);}',
 
-      /* ── Conteúdo renderizado ── */
       '.rb-doc-item{',
         'display:flex;align-items:center;gap:12px;',
         'padding:12px 14px;background:#F9F6F3;',
@@ -263,7 +277,7 @@
     else if (type === 'text') {
       var target = container.querySelector('[data-text-target]');
       if (!target) return;
-      if (!data || !data.text) return; // mantém conteúdo estático padrão
+      if (!data || !data.text) return;
       target.innerHTML = data.text.split('\n').filter(function (l) { return l.trim(); }).map(function (l) {
         return '<p>' + escHtml(l) + '</p>';
       }).join('');
@@ -352,7 +366,7 @@
     render();
     saveBtn.addEventListener('click', function () {
       var valid = links.filter(function (l) { return l.url.trim() && l.title.trim(); });
-      saveSection(pageId, secId, { links: valid });
+      saveSection(pageId, secId, 'links', { links: valid });
       applySection(container, pageId, secId, 'links');
       closeModal();
     });
@@ -369,7 +383,7 @@
         '<p>Clique ou arraste arquivos aqui (máx. 1,5 MB cada)</p>' +
         '<input type="file" id="ce-file-inp" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.gif,.txt,.csv,.zip" multiple />' +
       '</div>' +
-      '<p class="ce-warn">&#9888; Arquivos ficam no navegador (localStorage). Use arquivos pequenos. Recomendamos PDFs.</p>' +
+      '<p class="ce-warn">&#9888; Arquivos são salvos no Supabase e ficam visíveis para todos. Use arquivos pequenos. Recomendamos PDFs.</p>' +
       '<div id="ce-doc-list"></div>';
 
     var area = body.querySelector('#ce-drop');
@@ -422,7 +436,7 @@
 
     renderList();
     saveBtn.addEventListener('click', function () {
-      saveSection(pageId, secId, { docs: docs });
+      saveSection(pageId, secId, 'documents', { docs: docs });
       applySection(container, pageId, secId, 'documents');
       closeModal();
     });
@@ -436,7 +450,7 @@
       '<textarea class="ce-textarea" id="ce-ta" placeholder="Escreva o conteúdo aqui...">' + escHtml(existing) + '</textarea>';
     saveBtn.addEventListener('click', function () {
       var text = body.querySelector('#ce-ta').value;
-      saveSection(pageId, secId, { text: text });
+      saveSection(pageId, secId, 'text', { text: text });
       applySection(container, pageId, secId, 'text');
       closeModal();
     });
@@ -444,8 +458,12 @@
 
   // ── Inicialização ─────────────────────────────────────────────────────────
 
-  function init() {
+  async function init() {
     injectStyles();
+
+    // Carrega seções do Supabase (apenas uma vez por página)
+    await _carregarSecoes();
+
     var isAdmin = (typeof dbIsAdmin === 'function') && dbIsAdmin();
 
     document.querySelectorAll('[data-editable]').forEach(function (container) {
@@ -454,10 +472,8 @@
       var pageId = parts[0], secId = parts[1], type = parts[2];
       var title = container.getAttribute('data-title') || secId;
 
-      // Renderiza conteúdo salvo
       applySection(container, pageId, secId, type);
 
-      // Injeta botão de edição para admins
       if (isAdmin) {
         var btn = document.createElement('button');
         btn.className = 'ce-edit-btn';
@@ -473,13 +489,12 @@
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', function() { init(); });
   } else {
     init();
   }
 
-  // Auto-retry: sessão carrega via async, então dbIsAdmin() pode ser false no primeiro init.
-  // Verifica periodicamente se a sessão ficou disponível e re-injeta botões de edição.
+  // Retry: re-injeta botões de edição quando sessão admin fica disponível após init
   var _adminResolved = false;
   var _retryCount = 0;
   var _retryInterval = setInterval(function() {
@@ -494,7 +509,6 @@
     }
   }, 100);
 
-  // Expor init para re-inicialização manual se necessário
   window.contentReInit = function() {
     _adminResolved = true;
     document.querySelectorAll('.ce-edit-btn').forEach(function(btn) { btn.remove(); });

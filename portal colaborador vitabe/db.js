@@ -1,7 +1,7 @@
 /**
  * db.js — Portal do Colaborador Renova Be
  * Autenticação via Supabase Auth + tabela profiles.
- * Dados de comunicados, eventos, etc. continuam em localStorage (data.js).
+ * Dados de comunicados, eventos, etc. carregados do Supabase via data.js.
  */
 
 'use strict';
@@ -234,6 +234,11 @@ async function dbInit() {
         email: profile.email,
         role:  profile.role
       };
+    }
+
+    // Carrega dados dinâmicos do Supabase (comunicados, eventos, etc.)
+    if (_sessaoCache && typeof dbInitData === 'function') {
+      await dbInitData();
     }
   }
   return _sessaoCache;

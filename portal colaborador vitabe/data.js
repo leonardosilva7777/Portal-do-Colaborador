@@ -1,251 +1,351 @@
 /**
  * data.js — Portal do Colaborador Renova Be
  * Módulo de dados dinâmicos: comunicados, eventos, políticas, mensagens, reports, benefícios customizados.
- * Armazenamento: localStorage
+ * Armazenamento: Supabase (com cache em memória para leitura síncrona)
  */
 
 'use strict';
 
-// ── CHAVES ──────────────────────────────────────────────────────────────────
-var DATA_KEYS = {
-  comunicados:  'portal_rb_comunicados',
-  eventos:      'portal_rb_eventos',
-  politicas:    'portal_rb_politicas',
-  mensagens:    'portal_rb_mensagens',
-  reports:      'portal_rb_reports',
-  beneficios:   'portal_rb_beneficios_custom',
-  bannerEmpresa:'portal_rb_banner_empresa'
+// ── CACHE ─────────────────────────────────────────────────────────────────────
+var _cache = {
+  comunicados:   [],
+  eventos:       [],
+  politicas:     [],
+  mensagens:     [],
+  reports:       [],
+  beneficios:    [],
+  bannerEmpresa: '',
+  carregado:     false
 };
 
-// ── HELPERS ──────────────────────────────────────────────────────────────────
-function _gerarId() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+// ── INIT (chamado por db.js após autenticação) ─────────────────────────────────
+async function dbInitData() {
+  if (_cache.carregado) return;
+
+  var resultados = await Promise.all([
+    supabase.from('comunicados').select('*').order('criado_em', { ascending: false }),
+    supabase.from('eventos').select('*').order('data_inicio', { ascending: true }),
+    supabase.from('politicas').select('*').order('ordem', { ascending: true }),
+    supabase.from('mensagens').select('*').order('criado_em', { ascending: false }),
+    supabase.from('reports').select('*').order('criado_em', { ascending: false }),
+    supabase.from('beneficios_custom').select('*').order('criado_em', { ascending: true }),
+    supabase.from('configuracoes').select('valor').eq('chave', 'banner_empresa').maybeSingle()
+  ]);
+
+  _cache.comunicados   = resultados[0].data || [];
+  _cache.eventos       = resultados[1].data || [];
+  _cache.politicas     = resultados[2].data || [];
+  _cache.mensagens     = resultados[3].data || [];
+  _cache.reports       = resultados[4].data || [];
+  _cache.beneficios    = resultados[5].data || [];
+  _cache.bannerEmpresa = (resultados[6].data && resultados[6].data.valor) || '';
+  _cache.carregado     = true;
 }
 
-function _get(key) {
-  try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) { return []; }
-}
-
-function _set(key, val) {
-  localStorage.setItem(key, JSON.stringify(val));
-}
-
-function _getObj(key, def) {
-  try { return JSON.parse(localStorage.getItem(key) || 'null') || def; } catch(e) { return def; }
-}
-
-// ── COMUNICADOS ──────────────────────────────────────────────────────────────
+// ── COMUNICADOS ───────────────────────────────────────────────────────────────
 
 function dbGetComunicados() {
-  return _get(DATA_KEYS.comunicados);
+  return _cache.comunicados;
 }
 
-/**
- * Cria um comunicado.
- * @param {object} dados - { titulo, tag, texto, imagemBase64? }
- */
-function dbCriarComunicado(dados) {
-  var lista = dbGetComunicados();
+async function dbCriarComunicado(dados) {
+  var sess = (typeof dbGetSessao === 'function') ? dbGetSessao() : null;
+  var id = crypto.randomUUID();
+
   var item = {
-    id:        _gerarId(),
+    id:        id,
     titulo:    dados.titulo || '',
     tag:       dados.tag || 'Geral',
     texto:     dados.texto || '',
     imagem:    dados.imagem || '',
     video:     dados.video || '',
-    criadoEm:  new Date().toISOString(),
-    autor:     (typeof dbGetSessao === 'function' && dbGetSessao()) ? dbGetSessao().nome : ''
+    autor:     sess ? sess.nome : '',
+    autor_id:  sess ? sess.id : null,
+    criado_em: new Date().toISOString()
   };
-  lista.unshift(item);
-  _set(DATA_KEYS.comunicados, lista);
-  return item;
+
+  // Atualiza cache imediatamente (otimista)
+  _cache.comunicados.unshift(item);
+
+  // Persiste no Supabase
+  var { data, error } = await supabase
+    .from('comunicados')
+    .insert(item)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Erro ao criar comunicado:', error);
+    _cache.comunicados = _cache.comunicados.filter(function(c) { return c.id !== id; });
+    return null;
+  }
+
+  var idx = _cache.comunicados.findIndex(function(c) { return c.id === id; });
+  if (idx !== -1) _cache.comunicados[idx] = data;
+  return data;
 }
 
-function dbExcluirComunicado(id) {
-  var lista = dbGetComunicados().filter(function(c) { return c.id !== id; });
-  _set(DATA_KEYS.comunicados, lista);
+async function dbExcluirComunicado(id) {
+  _cache.comunicados = _cache.comunicados.filter(function(c) { return c.id !== id; });
+  await supabase.from('comunicados').delete().eq('id', id);
 }
 
-// ── EVENTOS ──────────────────────────────────────────────────────────────────
+// ── EVENTOS ───────────────────────────────────────────────────────────────────
 
 function dbGetEventos() {
-  return _get(DATA_KEYS.eventos);
+  return _cache.eventos;
 }
 
-/**
- * @param {object} dados - { titulo, descricao, dataInicio (YYYY-MM-DD), dataFim (YYYY-MM-DD), cor, imagemBase64? }
- */
-function dbCriarEvento(dados) {
-  var lista = dbGetEventos();
+async function dbCriarEvento(dados) {
+  var id = crypto.randomUUID();
+
   var item = {
-    id:         _gerarId(),
-    titulo:     dados.titulo || '',
-    descricao:  dados.descricao || '',
-    dataInicio: dados.dataInicio || '',
-    dataFim:    dados.dataFim || dados.dataInicio || '',
-    cor:        dados.cor || '#EA5339',
-    imagem:     dados.imagem || '',
-    criadoEm:   new Date().toISOString()
+    id:          id,
+    titulo:      dados.titulo || '',
+    descricao:   dados.descricao || '',
+    data_inicio: dados.dataInicio || '',
+    data_fim:    dados.dataFim || dados.dataInicio || '',
+    cor:         dados.cor || '#EA5339',
+    imagem:      dados.imagem || '',
+    criado_em:   new Date().toISOString()
   };
-  lista.push(item);
-  lista.sort(function(a, b) { return a.dataInicio.localeCompare(b.dataInicio); });
-  _set(DATA_KEYS.eventos, lista);
-  return item;
+
+  _cache.eventos.push(item);
+  _cache.eventos.sort(function(a, b) { return a.data_inicio.localeCompare(b.data_inicio); });
+
+  var { data, error } = await supabase
+    .from('eventos')
+    .insert(item)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Erro ao criar evento:', error);
+    _cache.eventos = _cache.eventos.filter(function(e) { return e.id !== id; });
+    return null;
+  }
+
+  var idx = _cache.eventos.findIndex(function(e) { return e.id === id; });
+  if (idx !== -1) _cache.eventos[idx] = data;
+  return data;
 }
 
-function dbExcluirEvento(id) {
-  var lista = dbGetEventos().filter(function(e) { return e.id !== id; });
-  _set(DATA_KEYS.eventos, lista);
+async function dbExcluirEvento(id) {
+  _cache.eventos = _cache.eventos.filter(function(e) { return e.id !== id; });
+  await supabase.from('eventos').delete().eq('id', id);
 }
 
-// ── POLÍTICAS ─────────────────────────────────────────────────────────────────
+// ── POLÍTICAS ──────────────────────────────────────────────────────────────────
 
 function dbGetPoliticas() {
-  return _get(DATA_KEYS.politicas);
+  return _cache.politicas;
 }
 
-/**
- * @param {object} dados - { titulo, conteudo }
- */
-function dbCriarPolitica(dados) {
-  var lista = dbGetPoliticas();
+async function dbCriarPolitica(dados) {
+  var id = crypto.randomUUID();
+
   var item = {
-    id:       _gerarId(),
-    titulo:   dados.titulo || '',
-    conteudo: dados.conteudo || '',
-    ordem:    lista.length,
-    criadoEm: new Date().toISOString()
+    id:        id,
+    titulo:    dados.titulo || '',
+    conteudo:  dados.conteudo || '',
+    ordem:     _cache.politicas.length,
+    criado_em: new Date().toISOString()
   };
-  lista.push(item);
-  _set(DATA_KEYS.politicas, lista);
-  return item;
+
+  _cache.politicas.push(item);
+
+  var { data, error } = await supabase
+    .from('politicas')
+    .insert(item)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Erro ao criar política:', error);
+    _cache.politicas = _cache.politicas.filter(function(p) { return p.id !== id; });
+    return null;
+  }
+
+  var idx = _cache.politicas.findIndex(function(p) { return p.id === id; });
+  if (idx !== -1) _cache.politicas[idx] = data;
+  return data;
 }
 
-function dbExcluirPolitica(id) {
-  var lista = dbGetPoliticas().filter(function(p) { return p.id !== id; });
-  _set(DATA_KEYS.politicas, lista);
+async function dbExcluirPolitica(id) {
+  _cache.politicas = _cache.politicas.filter(function(p) { return p.id !== id; });
+  await supabase.from('politicas').delete().eq('id', id);
 }
 
-function dbAtualizarPolitica(id, dados) {
-  var lista = dbGetPoliticas();
-  var idx = lista.findIndex(function(p) { return p.id === id; });
+async function dbAtualizarPolitica(id, dados) {
+  var idx = _cache.politicas.findIndex(function(p) { return p.id === id; });
   if (idx === -1) return false;
-  lista[idx].titulo   = dados.titulo   !== undefined ? dados.titulo   : lista[idx].titulo;
-  lista[idx].conteudo = dados.conteudo !== undefined ? dados.conteudo : lista[idx].conteudo;
-  _set(DATA_KEYS.politicas, lista);
-  return true;
+
+  var updates = {};
+  if (dados.titulo !== undefined)   { _cache.politicas[idx].titulo   = dados.titulo;   updates.titulo   = dados.titulo; }
+  if (dados.conteudo !== undefined) { _cache.politicas[idx].conteudo = dados.conteudo; updates.conteudo = dados.conteudo; }
+
+  var { error } = await supabase.from('politicas').update(updates).eq('id', id);
+  return !error;
 }
 
-// ── MENSAGENS (Fale G&G) ──────────────────────────────────────────────────────
+// ── MENSAGENS (Fale G&G) ───────────────────────────────────────────────────────
 
 function dbGetMensagens() {
-  return _get(DATA_KEYS.mensagens);
+  return _cache.mensagens;
 }
 
-/**
- * @param {object} dados - { nome, assunto, mensagem }
- */
-function dbSalvarMensagem(dados) {
-  var lista = dbGetMensagens();
+async function dbSalvarMensagem(dados) {
+  var sess = (typeof dbGetSessao === 'function') ? dbGetSessao() : null;
+  var id = crypto.randomUUID();
+
   var item = {
-    id:       _gerarId(),
-    nome:     dados.nome || '',
-    assunto:  dados.assunto || '',
-    mensagem: dados.mensagem || '',
-    lida:     false,
-    tipo:     'mensagem',
-    criadoEm: new Date().toISOString()
+    id:         id,
+    nome:       dados.nome || '',
+    assunto:    dados.assunto || '',
+    mensagem:   dados.mensagem || '',
+    lida:       false,
+    tipo:       'mensagem',
+    usuario_id: sess ? sess.id : null,
+    criado_em:  new Date().toISOString()
   };
-  lista.unshift(item);
-  _set(DATA_KEYS.mensagens, lista);
-  return item;
+
+  _cache.mensagens.unshift(item);
+
+  var { data, error } = await supabase
+    .from('mensagens')
+    .insert(item)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Erro ao salvar mensagem:', error);
+    _cache.mensagens = _cache.mensagens.filter(function(m) { return m.id !== id; });
+    return null;
+  }
+
+  var idx = _cache.mensagens.findIndex(function(m) { return m.id === id; });
+  if (idx !== -1) _cache.mensagens[idx] = data;
+  return data;
 }
 
-function dbMarcarMensagemLida(id) {
-  var lista = dbGetMensagens();
-  var idx = lista.findIndex(function(m) { return m.id === id; });
-  if (idx !== -1) { lista[idx].lida = true; _set(DATA_KEYS.mensagens, lista); }
+async function dbMarcarMensagemLida(id) {
+  var idx = _cache.mensagens.findIndex(function(m) { return m.id === id; });
+  if (idx !== -1) _cache.mensagens[idx].lida = true;
+  await supabase.from('mensagens').update({ lida: true }).eq('id', id);
 }
 
-function dbExcluirMensagem(id) {
-  _set(DATA_KEYS.mensagens, dbGetMensagens().filter(function(m) { return m.id !== id; }));
+async function dbExcluirMensagem(id) {
+  _cache.mensagens = _cache.mensagens.filter(function(m) { return m.id !== id; });
+  await supabase.from('mensagens').delete().eq('id', id);
 }
 
-// ── REPORTS (Relatar Problema) ────────────────────────────────────────────────
+// ── REPORTS (Relatar Problema) ─────────────────────────────────────────────────
 
 function dbGetReports() {
-  return _get(DATA_KEYS.reports);
+  return _cache.reports;
 }
 
-/**
- * @param {object} dados - { nome, categoria, descricao, anonimo }
- */
-function dbSalvarReport(dados) {
-  var lista = dbGetReports();
+async function dbSalvarReport(dados) {
+  var sess = (typeof dbGetSessao === 'function') ? dbGetSessao() : null;
+  var id = crypto.randomUUID();
+
   var item = {
-    id:        _gerarId(),
-    nome:      dados.anonimo ? 'Anônimo' : (dados.nome || ''),
-    categoria: dados.categoria || '',
-    descricao: dados.descricao || '',
-    anonimo:   !!dados.anonimo,
-    anexos:    dados.anexos || [],
-    lido:      false,
-    tipo:      'report',
-    criadoEm:  new Date().toISOString()
+    id:         id,
+    nome:       dados.anonimo ? 'Anônimo' : (dados.nome || ''),
+    categoria:  dados.categoria || '',
+    descricao:  dados.descricao || '',
+    anonimo:    !!dados.anonimo,
+    lido:       false,
+    tipo:       'report',
+    usuario_id: (!dados.anonimo && sess) ? sess.id : null,
+    criado_em:  new Date().toISOString()
   };
-  lista.unshift(item);
-  _set(DATA_KEYS.reports, lista);
-  return item;
+
+  _cache.reports.unshift(item);
+
+  var { data, error } = await supabase
+    .from('reports')
+    .insert(item)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Erro ao salvar report:', error);
+    _cache.reports = _cache.reports.filter(function(r) { return r.id !== id; });
+    return null;
+  }
+
+  var idx = _cache.reports.findIndex(function(r) { return r.id === id; });
+  if (idx !== -1) _cache.reports[idx] = data;
+  return data;
 }
 
-function dbMarcarReportLido(id) {
-  var lista = dbGetReports();
-  var idx = lista.findIndex(function(r) { return r.id === id; });
-  if (idx !== -1) { lista[idx].lido = true; _set(DATA_KEYS.reports, lista); }
+async function dbMarcarReportLido(id) {
+  var idx = _cache.reports.findIndex(function(r) { return r.id === id; });
+  if (idx !== -1) _cache.reports[idx].lido = true;
+  await supabase.from('reports').update({ lido: true }).eq('id', id);
 }
 
-function dbExcluirReport(id) {
-  _set(DATA_KEYS.reports, dbGetReports().filter(function(r) { return r.id !== id; }));
+async function dbExcluirReport(id) {
+  _cache.reports = _cache.reports.filter(function(r) { return r.id !== id; });
+  await supabase.from('reports').delete().eq('id', id);
 }
 
-// ── BENEFÍCIOS CUSTOMIZADOS ───────────────────────────────────────────────────
+// ── BENEFÍCIOS CUSTOMIZADOS ────────────────────────────────────────────────────
 
 function dbGetBeneficiosCustom() {
-  return _get(DATA_KEYS.beneficios);
+  return _cache.beneficios;
 }
 
-/**
- * @param {object} dados - { nome, imagemBase64?, link? }
- */
-function dbCriarBeneficioCustom(dados) {
-  var lista = dbGetBeneficiosCustom();
+async function dbCriarBeneficioCustom(dados) {
+  var id = crypto.randomUUID();
+
   var item = {
-    id:       _gerarId(),
-    nome:     dados.nome || '',
-    imagem:   dados.imagem || '',
-    link:     dados.link || '',
-    criadoEm: new Date().toISOString()
+    id:        id,
+    nome:      dados.nome || '',
+    imagem:    dados.imagem || '',
+    link:      dados.link || '',
+    criado_em: new Date().toISOString()
   };
-  lista.push(item);
-  _set(DATA_KEYS.beneficios, lista);
-  return item;
+
+  _cache.beneficios.push(item);
+
+  var { data, error } = await supabase
+    .from('beneficios_custom')
+    .insert(item)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Erro ao criar benefício:', error);
+    _cache.beneficios = _cache.beneficios.filter(function(b) { return b.id !== id; });
+    return null;
+  }
+
+  var idx = _cache.beneficios.findIndex(function(b) { return b.id === id; });
+  if (idx !== -1) _cache.beneficios[idx] = data;
+  return data;
 }
 
-function dbExcluirBeneficioCustom(id) {
-  _set(DATA_KEYS.beneficios, dbGetBeneficiosCustom().filter(function(b) { return b.id !== id; }));
+async function dbExcluirBeneficioCustom(id) {
+  _cache.beneficios = _cache.beneficios.filter(function(b) { return b.id !== id; });
+  await supabase.from('beneficios_custom').delete().eq('id', id);
 }
 
-// ── BANNER EMPRESA ────────────────────────────────────────────────────────────
+// ── BANNER EMPRESA ─────────────────────────────────────────────────────────────
 
 function dbGetBannerEmpresa() {
-  return localStorage.getItem(DATA_KEYS.bannerEmpresa) || '';
+  return _cache.bannerEmpresa;
 }
 
-function dbSalvarBannerEmpresa(base64) {
-  localStorage.setItem(DATA_KEYS.bannerEmpresa, base64);
+async function dbSalvarBannerEmpresa(base64) {
+  _cache.bannerEmpresa = base64;
+  await supabase
+    .from('configuracoes')
+    .upsert({ chave: 'banner_empresa', valor: base64 }, { onConflict: 'chave' });
 }
 
-// ── FORMATAÇÃO ────────────────────────────────────────────────────────────────
+// ── FORMATAÇÃO ─────────────────────────────────────────────────────────────────
 
 function dbFormatarData(isoStr) {
   if (!isoStr) return '';
