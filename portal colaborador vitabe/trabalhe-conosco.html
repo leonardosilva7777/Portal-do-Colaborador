@@ -167,6 +167,31 @@ textarea.field{min-height:80px;resize:vertical;}
   .vaga-body{padding:28px 20px;}
   .vaga-header-detail{padding:40px 20px;}
 }
+/* LOGIN MODAL */
+.login-overlay{position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:opacity .35s,visibility .35s;}
+.login-overlay.open{opacity:1;visibility:visible;}
+.login-backdrop{position:absolute;inset:0;background:rgba(43,36,34,.6);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
+.login-modal{position:relative;z-index:2;background:var(--white);border-radius:18px;padding:40px 36px;width:100%;max-width:400px;transform:translateY(24px) scale(.97);transition:transform .4s cubic-bezier(.16,1,.3,1);box-shadow:0 24px 60px rgba(43,36,34,.2);}
+.login-overlay.open .login-modal{transform:translateY(0) scale(1);}
+.login-close{position:absolute;top:14px;right:14px;background:none;border:none;cursor:pointer;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--muted);transition:all .2s;}
+.login-close:hover{background:rgba(43,36,34,.05);color:var(--dark);}
+.login-modal .form-title{font-family:var(--font-h);font-size:24px;font-weight:400;text-transform:uppercase;letter-spacing:.04em;color:var(--dark);margin-bottom:4px;}
+.login-modal .form-subtitle{font-family:var(--font-b);font-size:14px;color:var(--muted);margin-bottom:28px;line-height:1.4;}
+.login-modal .form-group{margin-bottom:18px;}
+.login-modal .form-group label{font-family:var(--font-s);display:block;margin-bottom:7px;font-size:11px;font-weight:400;color:var(--dark);text-transform:uppercase;letter-spacing:.07em;}
+.login-modal .form-group input{font-family:var(--font-b);width:100%;padding:13px 16px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;color:var(--dark);background:var(--white);transition:border-color .2s,box-shadow .2s;}
+.login-modal .form-group input:focus{outline:none;border-color:var(--warm);box-shadow:0 0 0 3px rgba(234,83,57,.1);}
+.login-modal .form-group input::placeholder{color:#bbb;}
+.login-modal .alert{font-family:var(--font-b);font-size:14px;padding:12px 16px;border-radius:10px;margin-bottom:18px;display:none;}
+.login-modal .alert.show{display:block;animation:shake .4s ease;}
+.login-modal .alert-error{background:#F8D7DA;color:#DC3545;border:1px solid #DC3545;}
+.login-modal .btn-submit{font-family:var(--font-s);width:100%;padding:14px;background:var(--warm);color:var(--cream);border:none;border-radius:999px;font-size:13px;font-weight:400;text-transform:uppercase;letter-spacing:.07em;cursor:pointer;transition:all .25s;margin-top:4px;}
+.login-modal .btn-submit:hover{background:var(--warm-dk);transform:translateY(-1px);}
+.login-modal .form-link{text-align:center;margin-top:16px;font-family:var(--font-b);font-size:13px;color:var(--muted);}
+.login-modal .form-link a{color:var(--warm);text-decoration:none;font-weight:600;}
+.login-modal .form-link a:hover{text-decoration:underline;}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-8px);}75%{transform:translateX(8px);}}
+
 </style>
 </head>
 <body>
@@ -184,7 +209,7 @@ textarea.field{min-height:80px;resize:vertical;}
     <button class="nav-btn active" id="nav-home" onclick="showPage('home')">Início</button>
     <button class="nav-btn" id="nav-vagas" onclick="showPage('vagas')">Vagas</button>
     <button class="nav-btn" id="nav-talentos" onclick="showPage('talentos')">Fazer Parte do Banco de Talentos</button>
-    <button class="nav-btn btn-portal" onclick="window.location.href='login.html'">Área do Colaborador</button>
+    <button class="nav-btn btn-portal" onclick="openLogin()">Área do Colaborador</button>
   </nav>
   <button class="mob-menu-btn" onclick="toggleMobMenu()">☰</button>
 </header>
@@ -279,6 +304,32 @@ textarea.field{min-height:80px;resize:vertical;}
   </div>
 </div>
 
+<!-- LOGIN MODAL -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-backdrop" onclick="closeLogin()"></div>
+  <div class="login-modal">
+    <button class="login-close" onclick="closeLogin()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <h1 class="form-title">Portal do<br/>Colaborador</h1>
+    <p class="form-subtitle">Faça login para acessar seu espaço.</p>
+    <div id="loginAlertMsg" class="alert alert-error" role="alert"></div>
+    <form id="loginForm" novalidate action="javascript:void(0)" method="POST">
+      <div class="form-group">
+        <label for="login-email">E-mail corporativo</label>
+        <input type="email" id="login-email" name="email" placeholder="seunome@vitabe.com.br" required autocomplete="email"/>
+      </div>
+      <div class="form-group">
+        <label for="login-senha">Senha</label>
+        <input type="password" id="login-senha" name="senha" placeholder="Sua senha" required autocomplete="current-password"/>
+      </div>
+      <button type="submit" class="btn-submit">Entrar</button>
+    </form>
+    <p class="form-link">Primeiro acesso? <a href="cadastro.html">Criar conta</a></p>
+    <p class="form-link" style="margin-top:10px"><a href="esqueci-senha.html">Esqueci minha senha</a></p>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 'use strict';
@@ -308,13 +359,7 @@ function toast(msg, dur) {
 }
 
 // ── LOAD VAGAS ──
-async function loadVagas() {
-  var { data, error } = await db.from('vagas').select('*').eq('ativa', true).order('criado_em', { ascending: false });
-  vagasData = data || [];
-  renderHomeVagas();
-  renderVagasGrid();
-  populateCidadesFilter();
-}
+async function loadVagas() {  try {    var { data, error } = await db.from('vagas').select('*').eq('ativa', true).order('criado_em', { ascending: false });    if (error) { console.error('Erro ao carregar vagas:', error); }    vagasData = data || [];  } catch(e) {    console.error('Erro ao carregar vagas:', e);    vagasData = [];  }  renderHomeVagas();  renderVagasGrid();  populateCidadesFilter();}
 
 function populateCidadesFilter() {
   var sel = document.getElementById('filtro-cidade');
@@ -554,8 +599,10 @@ Atividades: '+atividades;    }  }  var sobreVoce = (document.getElementById('bt-
 
 window.toggleMobMenu = function(){ var n=document.getElementById('mobNav'); n.classList.toggle('open'); };
 
+// ── LOGIN MODAL ──window.openLogin = function() {  document.getElementById('loginOverlay').classList.add('open');  document.body.style.overflow = 'hidden';  setTimeout(function() { document.getElementById('login-email').focus(); }, 350);};window.closeLogin = function() {  document.getElementById('loginOverlay').classList.remove('open');  document.body.style.overflow = '';};document.addEventListener('keydown', function(e) {  if (e.key === 'Escape') window.closeLogin();});// ── LOGIN FORM HANDLER ──(function() {  var form = document.getElementById('loginForm');  var alertMsg = document.getElementById('loginAlertMsg');  function mostrarErro(msg) {    alertMsg.textContent = msg;    alertMsg.className = 'alert alert-error show';  }  form.addEventListener('submit', async function(e) {    e.preventDefault();    alertMsg.className = 'alert alert-error';    var email = document.getElementById('login-email').value.trim();    var senha = document.getElementById('login-senha').value;    if (!email || !senha) { mostrarErro('Preencha e-mail e senha.'); return; }    var btn = form.querySelector('.btn-submit');    btn.disabled = true;    btn.textContent = 'Entrando…';    try {      var result = await db.auth.signInWithPassword({ email: email.toLowerCase(), password: senha });      if (result.error) {        if (result.error.message.includes('Invalid login credentials')) {          mostrarErro('E-mail ou senha incorretos. Verifique e tente novamente.');        } else {          mostrarErro('Erro ao fazer login. Tente novamente.');        }        btn.disabled = false; btn.textContent = 'Entrar';        document.getElementById('login-senha').value = '';        document.getElementById('login-senha').focus();        return;      }      window.location.href = 'index.html';    } catch(err) {      console.error('Login error:', err);      mostrarErro('Erro ao fazer login. Tente novamente.');      btn.disabled = false; btn.textContent = 'Entrar';    }  });})();
 // ── INIT ──
 document.addEventListener('DOMContentLoaded', function() {
+  showPage('home');
   renderBTForm();
   loadVagas();
 });
