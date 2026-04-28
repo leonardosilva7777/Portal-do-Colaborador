@@ -8,6 +8,7 @@
   <meta http-equiv="Expires" content="0"/>
   <title>Renova Be — Viva o Prazer de Ser Você</title>
   <meta name="description" content="A Renova Be é uma empresa do Grupo Vitabe dedicada ao bem-estar, inovação e autocuidado. Conheça nossa cultura, valores e oportunidades."/>
+  <link rel="icon" type="image/png" href="icon.png"/>
 
   <style>
     /* ── FONTS ── */
@@ -65,7 +66,7 @@
     .lp-header {
       position: fixed; top: 0; left: 0; right: 0; z-index: 100;
       display: flex; align-items: center; justify-content: space-between;
-      padding: 0 48px; height: 72px;
+      padding: 0 48px; height: 80px;
       background: rgba(238,229,220,0.95);
       backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
       border-bottom: 1px solid rgba(43,36,34,0.06);
@@ -73,7 +74,7 @@
     }
     .lp-header.scrolled { box-shadow: 0 2px 24px rgba(43,36,34,0.08); }
     .lp-header .logo-link { display: flex; align-items: center; text-decoration: none; }
-    .lp-header .logo-img { height: 38px; width: auto; object-fit: contain; }
+    .lp-header .logo-img { height: 56px; width: auto; object-fit: contain; }
     .header-nav { display: flex; align-items: center; gap: 4px; }
     .header-nav a {
       font-family: var(--font-b); font-size: 12px; font-weight: 500;
@@ -97,7 +98,7 @@
 
     /* ── HERO BANNER ── */
     .hero-banner {
-      margin-top: 72px;
+      margin-top: 80px;
       width: 100%;
       overflow: hidden;
       background: var(--warm);
@@ -120,8 +121,8 @@
       max-width: 680px; margin: 0 auto;
     }
     .intro-eyebrow {
-      font-family: var(--font-b); font-size: 11px; font-weight: 600;
-      letter-spacing: 0.14em; text-transform: uppercase;
+      font-family: var(--font-b); font-size: 15px; font-weight: 500;
+      letter-spacing: 0.08em; text-transform: uppercase;
       color: var(--warm); margin-bottom: 20px;
     }
     .intro-text {
@@ -267,7 +268,7 @@
     }
     .lifestyle-bg {
       position: absolute; inset: 0;
-      background: url('img-lp/lifestyle-2.png') center center / cover no-repeat;
+      background: url('img-lp/lifestyle-2.png') center 20% / cover no-repeat;
     }
     .lifestyle-overlay {
       position: absolute; inset: 0;
@@ -518,6 +519,7 @@
       .lp-header { padding: 0 20px; height: 60px; }
       .header-nav { display: none; }
       .hamburger { display: block; }
+      .lp-header .logo-img { height: 44px; }
       .hero-banner { margin-top: 60px; }
       .intro { padding: 48px 24px; }
       .intro-text { font-size: 16px; }
@@ -583,6 +585,7 @@
   <a href="#valores" onclick="toggleDrawer()">Valores</a>
   <a href="#cultura" onclick="toggleDrawer()">Cultura</a>
   <a href="trabalhe-conosco.html">Vagas Abertas</a>
+  <a href="https://www.contatoseguro.com.br/renovabe" target="_blank" rel="noopener">Canal de Denúncia</a>
   <button class="btn-drawer-cta" onclick="toggleDrawer();openLogin()">Sou Colaborador</button>
 </div>
 
@@ -601,6 +604,7 @@
     <div class="intro-btns reveal stagger-3">
       <button class="btn-warm" onclick="openLogin()">Sou Colaborador</button>
       <a href="trabalhe-conosco.html" class="btn-dark-outline">Trabalhe Conosco</a>
+      <a href="https://www.contatoseguro.com.br/renovabe" target="_blank" rel="noopener" class="btn-dark-outline">Canal de Denúncia</a>
     </div>
   </div>
 </section>
@@ -712,8 +716,8 @@
       <p class="reveal stagger-4">Se você se identificou com a nossa cultura e quer construir algo significativo, estamos esperando por você.</p>
     </div>
     <div class="culture-image reveal-right">
-      <img src="img-lp/lifestyle-1.png" alt="Cultura Renova Be" loading="lazy"/>
-      <div class="culture-badge">Seu ritmo é o ritmo certo</div>
+      <img src="img-lp/cultura.png" alt="Cultura Renova Be" loading="lazy"/>
+      <div class="culture-badge">Pessoas no centro de tudo</div>
     </div>
   </div>
 </section>
@@ -727,6 +731,7 @@
     <div class="cta-final-btns reveal stagger-3">
       <button class="btn-cream" onclick="openLogin()">Sou Colaborador</button>
       <a href="trabalhe-conosco.html" class="btn-cream-outline">Trabalhe Conosco</a>
+      <a href="https://www.contatoseguro.com.br/renovabe" target="_blank" rel="noopener" class="btn-cream-outline">Canal de Denúncia</a>
     </div>
   </div>
 </section>
