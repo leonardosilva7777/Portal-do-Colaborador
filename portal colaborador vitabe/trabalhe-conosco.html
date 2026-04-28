@@ -586,18 +586,32 @@ async function enviarBancoTalentos() {
       curriculoUrl = upData.path; // salva apenas o path; URL é gerada pelo admin via signed URL
     }
   }
-  // Collect experience data  var experiencias = '';  for(var i=1;i<=3;i++){    var cargo = (document.getElementById('bt-exp'+i+'-cargo').value||'').trim();    var empresa = (document.getElementById('bt-exp'+i+'-empresa').value||'').trim();    var periodo = (document.getElementById('bt-exp'+i+'-periodo').value||'').trim();    var atividades = (document.getElementById('bt-exp'+i+'-atividades').value||'').trim();    if(cargo||empresa){      experiencias += '
-
---- Experiência '+i+' ---
-Cargo: '+cargo+'
-Empresa: '+empresa+'
-Período: '+periodo+'
-Atividades: '+atividades;    }  }  var sobreVoce = (document.getElementById('bt-sobre-voce').value||'').trim();  var msgOriginal = (document.getElementById('bt-msg').value||'').trim();  var mensagemCompleta = msgOriginal;  if(experiencias) mensagemCompleta += '
-
-=== EXPERIÊNCIA PROFISSIONAL ===' + experiencias;  if(sobreVoce) mensagemCompleta += '
-
-=== CONTE SOBRE VOCÊ ===
-' + sobreVoce;  var { error } = await db.from('banco_talentos').insert({    nome: nome, email: email,    telefone: document.getElementById('bt-tel').value||'',    cidade: document.getElementById('bt-cidade').value||'',    area_interesse: document.getElementById('bt-area').value||'',    mensagem: mensagemCompleta,    curriculo_url: curriculoUrl,    curriculo_nome: curriculoNome  });  if(error){ console.error(error); toast('Erro ao enviar. Tente novamente.'); btn.disabled = false; btn.textContent = 'Fazer Parte do Banco de Talentos'; return; }
+  // Collect experience data
+  var experiencias = '';
+  for(var i=1;i<=3;i++){
+    var cargo = (document.getElementById('bt-exp'+i+'-cargo').value||'').trim();
+    var empresa = (document.getElementById('bt-exp'+i+'-empresa').value||'').trim();
+    var periodo = (document.getElementById('bt-exp'+i+'-periodo').value||'').trim();
+    var atividades = (document.getElementById('bt-exp'+i+'-atividades').value||'').trim();
+    if(cargo||empresa){
+      experiencias += '\n--- Experiencia '+i+' ---\nCargo: '+cargo+'\nEmpresa: '+empresa+'\nPeriodo: '+periodo+'\nAtividades: '+atividades;
+    }
+  }
+  var sobreVoce = (document.getElementById('bt-sobre-voce').value||'').trim();
+  var msgOriginal = (document.getElementById('bt-msg').value||'').trim();
+  var mensagemCompleta = msgOriginal;
+  if(experiencias) mensagemCompleta += '\n\n=== EXPERIENCIA PROFISSIONAL ===' + experiencias;
+  if(sobreVoce) mensagemCompleta += '\n\n=== CONTE SOBRE VOCE ===\n' + sobreVoce;
+  var { error } = await db.from('banco_talentos').insert({
+    nome: nome, email: email,
+    telefone: document.getElementById('bt-tel').value||'',
+    cidade: document.getElementById('bt-cidade').value||'',
+    area_interesse: document.getElementById('bt-area').value||'',
+    mensagem: mensagemCompleta,
+    curriculo_url: curriculoUrl,
+    curriculo_nome: curriculoNome
+  });
+  if(error){ console.error(error); toast('Erro ao enviar. Tente novamente.'); btn.disabled = false; btn.textContent = 'Fazer Parte do Banco de Talentos'; return; }
   document.getElementById('bt-form-area').innerHTML =
     '<div class="success-box"><div class="success-icon">✅</div>' +
     '<h3 style="font-family:var(--font-h);font-size:22px;font-weight:400;text-transform:uppercase;margin-bottom:10px">Cadastro realizado!</h3>' +
@@ -608,7 +622,58 @@ Atividades: '+atividades;    }  }  var sobreVoce = (document.getElementById('bt-
 
 window.toggleMobMenu = function(){ var n=document.getElementById('mobNav'); n.classList.toggle('open'); };
 
-// ── LOGIN MODAL ──window.openLogin = function() {  document.getElementById('loginOverlay').classList.add('open');  document.body.style.overflow = 'hidden';  setTimeout(function() { document.getElementById('login-email').focus(); }, 350);};window.closeLogin = function() {  document.getElementById('loginOverlay').classList.remove('open');  document.body.style.overflow = '';};document.addEventListener('keydown', function(e) {  if (e.key === 'Escape') window.closeLogin();});// ── LOGIN FORM HANDLER ──(function() {  var form = document.getElementById('loginForm');  var alertMsg = document.getElementById('loginAlertMsg');  function mostrarErro(msg) {    alertMsg.textContent = msg;    alertMsg.className = 'alert alert-error show';  }  form.addEventListener('submit', async function(e) {    e.preventDefault();    alertMsg.className = 'alert alert-error';    var email = document.getElementById('login-email').value.trim();    var senha = document.getElementById('login-senha').value;    if (!email || !senha) { mostrarErro('Preencha e-mail e senha.'); return; }    var btn = form.querySelector('.btn-submit');    btn.disabled = true;    btn.textContent = 'Entrando…';    try {      var result = await db.auth.signInWithPassword({ email: email.toLowerCase(), password: senha });      if (result.error) {        if (result.error.message.includes('Invalid login credentials')) {          mostrarErro('E-mail ou senha incorretos. Verifique e tente novamente.');        } else {          mostrarErro('Erro ao fazer login. Tente novamente.');        }        btn.disabled = false; btn.textContent = 'Entrar';        document.getElementById('login-senha').value = '';        document.getElementById('login-senha').focus();        return;      }      window.location.href = 'index.html';    } catch(err) {      console.error('Login error:', err);      mostrarErro('Erro ao fazer login. Tente novamente.');      btn.disabled = false; btn.textContent = 'Entrar';    }  });})();
+// ── LOGIN MODAL ──
+window.openLogin = function() {
+  document.getElementById('loginOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(function() { document.getElementById('login-email').focus(); }, 350);
+};
+window.closeLogin = function() {
+  document.getElementById('loginOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+};
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') window.closeLogin();
+});
+
+// ── LOGIN FORM HANDLER ──
+(function() {
+  var form = document.getElementById('loginForm');
+  var alertMsg = document.getElementById('loginAlertMsg');
+  function mostrarErro(msg) {
+    alertMsg.textContent = msg;
+    alertMsg.className = 'alert alert-error show';
+  }
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    alertMsg.className = 'alert alert-error';
+    var email = document.getElementById('login-email').value.trim();
+    var senha = document.getElementById('login-senha').value;
+    if (!email || !senha) { mostrarErro('Preencha e-mail e senha.'); return; }
+    var btn = form.querySelector('.btn-submit');
+    btn.disabled = true;
+    btn.textContent = 'Entrando…';
+    try {
+      var result = await db.auth.signInWithPassword({ email: email.toLowerCase(), password: senha });
+      if (result.error) {
+        if (result.error.message.includes('Invalid login credentials')) {
+          mostrarErro('E-mail ou senha incorretos. Verifique e tente novamente.');
+        } else {
+          mostrarErro('Erro ao fazer login. Tente novamente.');
+        }
+        btn.disabled = false; btn.textContent = 'Entrar';
+        document.getElementById('login-senha').value = '';
+        document.getElementById('login-senha').focus();
+        return;
+      }
+      window.location.href = 'index.html';
+    } catch(err) {
+      console.error('Login error:', err);
+      mostrarErro('Erro ao fazer login. Tente novamente.');
+      btn.disabled = false; btn.textContent = 'Entrar';
+    }
+  });
+})();
 // ── INIT ──
 document.addEventListener('DOMContentLoaded', function() {
   showPage('home');
