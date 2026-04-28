@@ -304,6 +304,15 @@ textarea.field{min-height:80px;resize:vertical;}
   </div>
 </div>
 
+
+<!-- Mobile Nav -->
+<div class="mob-nav" id="mobNav">
+  <button class="mob-close" onclick="toggleMobMenu()">&times;</button>
+  <button class="mob-link" onclick="showPage('home');toggleMobMenu()">Início</button>
+  <button class="mob-link" onclick="showPage('vagas');toggleMobMenu()">Vagas</button>
+  <button class="mob-link" onclick="showPage('talentos');toggleMobMenu()">Banco de Talentos</button>
+  <button class="mob-link" onclick="openLogin();toggleMobMenu()">Área do Colaborador</button>
+</div>
 <!-- LOGIN MODAL -->
 <div class="login-overlay" id="loginOverlay">
   <div class="login-backdrop" onclick="closeLogin()"></div>
@@ -523,8 +532,8 @@ function renderBTForm() {
     '<div class="form-group"><label>Área de interesse</label><input type="text" class="field" id="bt-area" placeholder="Ex: Marketing, Tecnologia, Logística…"/></div>' +
     '<div class="form-group"><label>Mensagem (opcional)</label><textarea class="field" id="bt-msg" placeholder="Conte um pouco sobre você e o que busca…"></textarea></div>' +
     '<div class="form-group"><label>Currículo (PDF ou DOC)</label>' +
-      '<div class="file-upload-area" onclick="document.getElementById('bt-file').click()">' +
-        '<input type="file" id="bt-file" accept=".pdf,.doc,.docx" onchange="showFileName('bt-file','bt-file-name')"/>' +
+      '<div class="file-upload-area" onclick="document.getElementById(\'bt-file\').click()">' +
+        '<input type="file" id="bt-file" accept=".pdf,.doc,.docx" onchange="showFileName(\'bt-file\',\'bt-file-name\')"/>' +
         '<div class="upload-icon">📄</div>' +
         '<p><strong>Clique para anexar</strong> ou arraste o arquivo</p>' +
         '<p>PDF, DOC ou DOCX · Máx. 5MB</p>' +
