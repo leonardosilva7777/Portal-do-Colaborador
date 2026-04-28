@@ -1,401 +1,1021 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
   <meta http-equiv="Pragma" content="no-cache"/>
   <meta http-equiv="Expires" content="0"/>
-  <title>Entrar — Portal do Colaborador Renova Be</title>
+  <title>Renova Be — Viva o Prazer de Ser Você</title>
+  <meta name="description" content="A Renova Be é uma empresa do Grupo Vitabe dedicada ao bem-estar, inovação e autocuidado. Conheça nossa cultura, valores e oportunidades."/>
 
   <style>
-    @font-face {
-      font-family: 'PP Museum';
-      src: url('fonts/PPMuseum-Light.woff2') format('woff2'),
-           url('fonts/PPMuseum-Light.woff') format('woff');
-      font-weight: 300; font-style: normal; font-display: swap;
-    }
-    @font-face {
-      font-family: 'PP Museum';
-      src: url('fonts/PPMuseum-Regular.woff2') format('woff2'),
-           url('fonts/PPMuseum-Regular.woff') format('woff');
-      font-weight: 400; font-style: normal; font-display: swap;
-    }
-    @font-face {
-      font-family: 'Ayuthaya';
-      src: url('fonts/Ayuthaya-Regular.woff2') format('woff2'),
-           url('fonts/Ayuthaya-Regular.woff') format('woff'),
-           url('fonts/Ayuthaya.ttf') format('truetype');
-      font-weight: 400; font-style: normal; font-display: swap;
-    }
-    @font-face {
-      font-family: 'Zalando Sans';
-      font-style: normal; font-display: swap; font-weight: 200 900;
-      src: url('https://cdn.jsdelivr.net/fontsource/fonts/zalando-sans:vf@latest/latin-wght-normal.woff2') format('woff2-variations');
-    }
+    /* ── FONTS ── */
+    @font-face{font-family:'PP Museum';src:url('fonts/PPMuseum-Light.woff2') format('woff2'),url('fonts/PPMuseum-Light.woff') format('woff');font-weight:300;font-style:normal;font-display:swap;}
+    @font-face{font-family:'PP Museum';src:url('fonts/PPMuseum-Regular.woff2') format('woff2'),url('fonts/PPMuseum-Regular.woff') format('woff');font-weight:400;font-style:normal;font-display:swap;}
+    @font-face{font-family:'Ayuthaya';src:url('fonts/Ayuthaya-Regular.woff2') format('woff2'),url('fonts/Ayuthaya-Regular.woff') format('woff'),url('fonts/Ayuthaya.ttf') format('truetype');font-weight:400;font-style:normal;font-display:swap;}
+    @font-face{font-family:'Zalando Sans';font-style:normal;font-display:swap;font-weight:200 900;src:url('https://cdn.jsdelivr.net/fontsource/fonts/zalando-sans:vf@latest/latin-wght-normal.woff2') format('woff2-variations');}
 
     :root {
-      --warm:   #EA5339;
-      --warm-d: #c94628;
-      --cream:  #EEE5DC;
-      --dark:   #2B2422;
-      --white:  #FFFFFF;
+      --warm: #EA5339;
+      --warm-dk: #c94628;
+      --cream: #EEE5DC;
+      --dark: #2B2422;
+      --dark-lt: #3d3330;
+      --white: #FFFFFF;
+      --green: #C3D72C;
+      --sky: #6EAABF;
+      --yellow: #F1BF33;
       --border: #D9CCC0;
-      --muted:  #666666;
-      --faint:  #999999;
-      --err:    #DC3545;
+      --muted: #666;
+      --faint: #999;
+      --err: #DC3545;
       --err-bg: #F8D7DA;
-      --ok-bg:  rgba(195,215,44,0.2);
+      --ok-bg: rgba(195,215,44,0.2);
       --ok-border: #8fa800;
-      --ok-text:   #4a5a00;
-      --font-h: 'PP Museum', 'Georgia', serif;
+      --ok-text: #4a5a00;
+      --font-h: 'PP Museum', Georgia, serif;
       --font-s: 'Ayuthaya', 'Helvetica Neue', sans-serif;
       --font-b: 'Zalando Sans', 'Inter', sans-serif;
     }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    body {
-      font-family: var(--font-b);
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--font-b); background: var(--cream); color: var(--dark); overflow-x: hidden; }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-thumb { background: var(--warm); border-radius: 3px; }
+    img { max-width: 100%; height: auto; }
+
+    /* ── SCROLL ANIMATIONS ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .reveal.active { opacity: 1; transform: translateY(0); }
+    .reveal-left {
+      opacity: 0;
+      transform: translateX(-50px);
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .reveal-left.active { opacity: 1; transform: translateX(0); }
+    .reveal-right {
+      opacity: 0;
+      transform: translateX(50px);
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .reveal-right.active { opacity: 1; transform: translateX(0); }
+    .stagger-1 { transition-delay: 0.1s; }
+    .stagger-2 { transition-delay: 0.2s; }
+    .stagger-3 { transition-delay: 0.3s; }
+    .stagger-4 { transition-delay: 0.4s; }
+    .stagger-5 { transition-delay: 0.5s; }
+
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(1.4);} }
+    @keyframes float { 0%,100%{transform:translateY(0);}50%{transform:translateY(-12px);} }
+    @keyframes slideInRight { from{opacity:0;transform:translateX(60px);}to{opacity:1;transform:translateX(0);} }
+    @keyframes fadeIn { from{opacity:0}to{opacity:1} }
+    @keyframes gradientMove { 0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%} }
+    @keyframes scaleIn { from{opacity:0;transform:scale(0.9);}to{opacity:1;transform:scale(1);} }
+    @keyframes shake { 0%,100%{transform:translateX(0);}25%{transform:translateX(-8px);}75%{transform:translateX(8px);} }
+
+    /* ── HEADER ── */
+    .lp-header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 48px; height: 72px;
+      background: transparent;
+      transition: background 0.4s, box-shadow 0.4s, backdrop-filter 0.4s;
+    }
+    .lp-header.scrolled {
+      background: rgba(238,229,220,0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 1px 20px rgba(43,36,34,0.06);
+    }
+    .lp-header .logo-link { display: flex; align-items: center; text-decoration: none; }
+    .lp-header .logo-img { height: 40px; width: auto; object-fit: contain; transition: opacity 0.3s; }
+    .lp-header .logo-img.dark { display: none; }
+    .lp-header.scrolled .logo-img.light { display: none; }
+    .lp-header.scrolled .logo-img.dark { display: block; }
+    .header-nav { display: flex; align-items: center; gap: 6px; }
+    .header-nav a {
+      font-family: var(--font-b); font-size: 13px; font-weight: 500;
+      letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none;
+      color: rgba(238,229,220,0.85); padding: 8px 14px; border-radius: 6px;
+      transition: color 0.2s, background 0.2s;
+    }
+    .header-nav a:hover { color: var(--cream); background: rgba(238,229,220,0.1); }
+    .lp-header.scrolled .header-nav a { color: var(--dark); }
+    .lp-header.scrolled .header-nav a:hover { color: var(--warm); background: rgba(234,83,57,0.06); }
+    .btn-header-cta {
+      font-family: var(--font-s); font-size: 11px; font-weight: 400;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      background: var(--cream); color: var(--dark);
+      border: none; border-radius: 999px; padding: 10px 22px;
+      cursor: pointer; transition: all 0.25s;
+    }
+    .btn-header-cta:hover { background: var(--green); transform: translateY(-1px); }
+    .lp-header.scrolled .btn-header-cta { background: var(--warm); color: var(--cream); }
+    .lp-header.scrolled .btn-header-cta:hover { background: var(--warm-dk); }
+
+    /* Hamburger */
+    .hamburger { display: none; background: none; border: none; cursor: pointer; padding: 6px; }
+    .hamburger span { display: block; width: 22px; height: 2px; background: var(--cream); margin: 5px 0; border-radius: 2px; transition: all 0.3s; }
+    .lp-header.scrolled .hamburger span { background: var(--dark); }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative; min-height: 100vh; display: flex; align-items: center;
       background: var(--warm);
-      color: var(--cream);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
       overflow: hidden;
     }
-
-    /* Círculos decorativos */
-    body::before, body::after {
-      content: '';
-      position: absolute;
-      border-radius: 50%;
-      border: 2px solid rgba(238,229,220,0.18);
+    .hero-bg {
+      position: absolute; inset: 0;
+      background: url('img-lp/banner.png') center center / cover no-repeat;
+      opacity: 0.35;
     }
-    body::before { width: 420px; height: 420px; top: -80px; right: -120px; }
-    body::after  { width: 280px; height: 280px; bottom: -60px; left: -60px; }
+    .hero-gradient {
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(234,83,57,0.95) 0%, rgba(234,83,57,0.7) 40%, rgba(201,70,40,0.85) 100%);
+    }
+    .hero-circles {
+      position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+    }
+    .hero-circles::before, .hero-circles::after {
+      content: ''; position: absolute; border-radius: 50%;
+      border: 1.5px solid rgba(238,229,220,0.12);
+    }
+    .hero-circles::before { width: 600px; height: 600px; top: -150px; right: -100px; }
+    .hero-circles::after { width: 400px; height: 400px; bottom: -80px; left: -80px; }
+    .hero-circle-3 {
+      position: absolute; width: 250px; height: 250px; border-radius: 50%;
+      border: 1.5px solid rgba(238,229,220,0.08);
+      top: 60%; right: 20%; animation: float 8s ease-in-out infinite;
+    }
+    .hero-content {
+      position: relative; z-index: 2; padding: 120px 48px 80px;
+      max-width: 1200px; margin: 0 auto; width: 100%;
+    }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 10px; margin-bottom: 28px;
+    }
+    .hero-dot {
+      width: 8px; height: 8px; background: var(--green);
+      border-radius: 50%; animation: pulse 2.5s infinite;
+    }
+    .hero-eyebrow span {
+      color: var(--cream); font-size: 12px; font-weight: 500;
+      letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.8;
+    }
+    .hero-title {
+      font-family: var(--font-h); font-weight: 300;
+      font-size: clamp(36px, 5.5vw, 68px); line-height: 1.08;
+      text-transform: uppercase; letter-spacing: 0.03em;
+      color: var(--cream); margin-bottom: 24px;
+      max-width: 700px;
+    }
+    .hero-title em {
+      font-style: normal; position: relative;
+      background: linear-gradient(90deg, var(--green), var(--yellow));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-sub {
+      color: rgba(238,229,220,0.75); font-size: 17px; line-height: 1.75;
+      margin-bottom: 44px; max-width: 520px;
+    }
+    .hero-btns { display: flex; gap: 14px; flex-wrap: wrap; }
+    .btn-primary {
+      font-family: var(--font-s); font-size: 13px; font-weight: 400;
+      letter-spacing: 0.07em; text-transform: uppercase;
+      background: var(--cream); color: var(--dark);
+      border: none; border-radius: 999px; padding: 16px 32px;
+      cursor: pointer; transition: all 0.25s; text-decoration: none; display: inline-block;
+    }
+    .btn-primary:hover { background: var(--green); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
+    .btn-outline {
+      font-family: var(--font-s); font-size: 13px; font-weight: 400;
+      letter-spacing: 0.07em; text-transform: uppercase;
+      background: transparent; color: var(--cream);
+      border: 1.5px solid rgba(238,229,220,0.4);
+      border-radius: 999px; padding: 15px 28px;
+      cursor: pointer; transition: all 0.25s; text-decoration: none; display: inline-block;
+    }
+    .btn-outline:hover { border-color: var(--cream); background: rgba(238,229,220,0.1); transform: translateY(-2px); }
 
-    /* Container centralizado */
-    .page {
-      width: 100%;
-      max-width: 780px;
-      display: flex;
-      flex-direction: column;
+    .hero-stats {
+      display: flex; gap: 48px; margin-top: 64px;
+      padding-top: 40px; border-top: 1px solid rgba(238,229,220,0.15);
+    }
+    .hero-stat {}
+    .hero-stat-val {
+      font-family: var(--font-h); font-size: 40px; font-weight: 300;
+      color: var(--cream); line-height: 1;
+    }
+    .hero-stat-lbl {
+      font-size: 11px; color: rgba(238,229,220,0.55);
+      letter-spacing: 0.1em; text-transform: uppercase; margin-top: 6px;
+    }
+
+    /* ── SCROLL INDICATOR ── */
+    .scroll-indicator {
+      position: absolute; bottom: 32px; left: 50%;
+      transform: translateX(-50%); z-index: 2;
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      color: rgba(238,229,220,0.5); font-size: 10px; letter-spacing: 0.12em;
+      text-transform: uppercase; animation: float 3s ease-in-out infinite;
+    }
+    .scroll-indicator svg { opacity: 0.5; }
+
+    /* ── ABOUT SECTION ── */
+    .about {
+      display: grid; grid-template-columns: 1fr 1fr;
+      min-height: 600px;
+    }
+    .about-image {
+      position: relative; overflow: hidden;
+    }
+    .about-image img {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: transform 6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .about-image:hover img { transform: scale(1.05); }
+    .about-image-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to right, transparent 60%, rgba(238,229,220,0.08) 100%);
+    }
+    .about-text {
+      display: flex; flex-direction: column; justify-content: center;
+      padding: 72px 64px;
+      background: var(--cream);
+    }
+    .section-eyebrow {
+      font-family: var(--font-b); font-size: 11px; font-weight: 600;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--warm); margin-bottom: 14px;
+    }
+    .section-title {
+      font-family: var(--font-h); font-weight: 300;
+      font-size: clamp(26px, 3vw, 40px); line-height: 1.15;
+      text-transform: uppercase; letter-spacing: 0.03em;
+      color: var(--dark); margin-bottom: 24px;
+    }
+    .about-text p {
+      font-size: 15px; line-height: 1.8; color: var(--muted);
+      margin-bottom: 16px;
+    }
+    .about-text p:last-of-type { margin-bottom: 0; }
+    .about-text p strong { color: var(--dark); font-weight: 600; }
+
+    /* ── STATS RIBBON ── */
+    .stats-ribbon {
+      background: var(--dark); padding: 56px 48px;
+      display: flex; align-items: center; justify-content: center; gap: 80px;
+      position: relative; overflow: hidden;
+    }
+    .stats-ribbon::before {
+      content: ''; position: absolute;
+      width: 300px; height: 300px; border-radius: 50%;
+      border: 1.5px solid rgba(238,229,220,0.05);
+      top: -120px; right: -40px;
+    }
+    .stat-item { text-align: center; position: relative; z-index: 1; }
+    .stat-number {
+      font-family: var(--font-h); font-size: 48px; font-weight: 300;
+      color: var(--cream); line-height: 1;
+    }
+    .stat-number span { color: var(--green); }
+    .stat-label {
+      font-size: 12px; color: rgba(238,229,220,0.5);
+      letter-spacing: 0.1em; text-transform: uppercase; margin-top: 8px;
+    }
+    .stat-divider {
+      width: 1px; height: 48px; background: rgba(238,229,220,0.1);
+    }
+
+    /* ── VALUES ── */
+    .values-section {
+      padding: 96px 48px; max-width: 1200px; margin: 0 auto;
+    }
+    .values-header { text-align: center; margin-bottom: 56px; }
+    .values-header .section-title { max-width: 500px; margin: 0 auto; }
+    .values-header p {
+      font-size: 15px; color: var(--muted); line-height: 1.7;
+      max-width: 480px; margin: 16px auto 0;
+    }
+    .values-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+    .value-card {
+      background: var(--white); border: 1px solid rgba(43,36,34,0.06);
+      border-radius: 14px; padding: 32px 26px;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative; overflow: hidden;
+    }
+    .value-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0;
+      height: 3px; border-radius: 14px 14px 0 0;
+      transform: scaleX(0); transform-origin: left;
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .value-card:nth-child(1)::before { background: var(--warm); }
+    .value-card:nth-child(2)::before { background: var(--green); }
+    .value-card:nth-child(3)::before { background: var(--sky); }
+    .value-card:nth-child(4)::before { background: var(--yellow); }
+    .value-card:nth-child(5)::before { background: var(--warm); }
+    .value-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 16px 40px rgba(43,36,34,0.08);
+    }
+    .value-card:hover::before { transform: scaleX(1); }
+    .value-icon {
+      width: 52px; height: 52px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; margin-bottom: 20px;
+    }
+    .value-card:nth-child(1) .value-icon { background: rgba(234,83,57,0.1); }
+    .value-card:nth-child(2) .value-icon { background: rgba(195,215,44,0.15); }
+    .value-card:nth-child(3) .value-icon { background: rgba(110,170,191,0.15); }
+    .value-card:nth-child(4) .value-icon { background: rgba(241,191,51,0.12); }
+    .value-card:nth-child(5) .value-icon { background: rgba(234,83,57,0.1); }
+    .value-card h3 {
+      font-family: var(--font-h); font-size: 17px; font-weight: 400;
+      text-transform: uppercase; letter-spacing: 0.03em;
+      color: var(--dark); margin-bottom: 8px;
+    }
+    .value-card p {
+      font-size: 13px; line-height: 1.65; color: var(--muted);
+    }
+
+    /* ── LIFESTYLE / CULTURE SECTION ── */
+    .lifestyle {
+      position: relative; min-height: 500px;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+    }
+    .lifestyle-bg {
+      position: absolute; inset: 0;
+      background: url('img-lp/lifestyle-2.png') center center / cover no-repeat;
+    }
+    .lifestyle-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(110,170,191,0.7) 0%, rgba(110,170,191,0.3) 50%, transparent 100%);
+    }
+    .lifestyle-content {
+      position: relative; z-index: 2; text-align: center;
+      padding: 80px 48px; max-width: 700px;
+    }
+    .lifestyle-content h2 {
+      font-family: var(--font-h); font-weight: 300;
+      font-size: clamp(28px, 4vw, 48px); line-height: 1.12;
+      text-transform: uppercase; letter-spacing: 0.03em;
+      color: var(--white); margin-bottom: 18px;
+      text-shadow: 0 2px 20px rgba(0,0,0,0.15);
+    }
+    .lifestyle-content p {
+      font-size: 16px; line-height: 1.75; color: rgba(255,255,255,0.85);
+      text-shadow: 0 1px 8px rgba(0,0,0,0.1);
+    }
+
+    /* ── CULTURE GRID ── */
+    .culture {
+      padding: 96px 48px; max-width: 1200px; margin: 0 auto;
+    }
+    .culture-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 40px;
       align-items: center;
-      padding: 48px 32px;
-      position: relative;
-      z-index: 1;
+    }
+    .culture-text {}
+    .culture-text p {
+      font-size: 15px; line-height: 1.8; color: var(--muted); margin-bottom: 16px;
+    }
+    .culture-text .highlight-bar {
+      display: flex; align-items: center; gap: 16px;
+      padding: 20px 24px; background: rgba(234,83,57,0.06);
+      border-left: 3px solid var(--warm); border-radius: 0 10px 10px 0;
+      margin: 24px 0;
+    }
+    .culture-text .highlight-bar p {
+      margin: 0; font-size: 14px; color: var(--dark); font-weight: 500;
+    }
+    .culture-image {
+      position: relative; border-radius: 16px; overflow: hidden;
+      aspect-ratio: 4/3;
+    }
+    .culture-image img {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: transform 4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .culture-image:hover img { transform: scale(1.04); }
+    .culture-badge {
+      position: absolute; bottom: 20px; left: 20px;
+      background: rgba(43,36,34,0.85); backdrop-filter: blur(8px);
+      color: var(--cream); padding: 12px 20px; border-radius: 10px;
+      font-size: 12px; font-weight: 500; letter-spacing: 0.06em;
+      text-transform: uppercase;
     }
 
-    .brand-logo { max-width: 280px; max-height: 110px; object-fit: contain; display: block; margin-bottom: 40px; }
-    .brand-logo-fallback {
-      font-family: var(--font-h);
-      font-size: 32px; font-weight: 400; text-transform: uppercase;
-      letter-spacing: 0.04em; color: var(--cream); margin-bottom: 36px; display: none;
+    /* ── CTA FINAL ── */
+    .cta-final {
+      background: var(--warm); padding: 96px 48px;
+      position: relative; overflow: hidden;
+    }
+    .cta-final-circles {
+      position: absolute; inset: 0; pointer-events: none;
+    }
+    .cta-final-circles::before {
+      content: ''; position: absolute; width: 500px; height: 500px;
+      border-radius: 50%; border: 1.5px solid rgba(238,229,220,0.1);
+      top: -200px; right: -100px;
+    }
+    .cta-final-circles::after {
+      content: ''; position: absolute; width: 300px; height: 300px;
+      border-radius: 50%; border: 1.5px solid rgba(238,229,220,0.06);
+      bottom: -100px; left: -60px;
+    }
+    .cta-final-inner {
+      max-width: 700px; margin: 0 auto; text-align: center;
+      position: relative; z-index: 2;
+    }
+    .cta-final-inner h2 {
+      font-family: var(--font-h); font-weight: 300;
+      font-size: clamp(28px, 4vw, 46px); line-height: 1.12;
+      text-transform: uppercase; letter-spacing: 0.03em;
+      color: var(--cream); margin-bottom: 16px;
+    }
+    .cta-final-inner p {
+      font-size: 16px; line-height: 1.75;
+      color: rgba(238,229,220,0.7); margin-bottom: 36px;
+      max-width: 500px; margin-left: auto; margin-right: auto;
+    }
+    .cta-final-btns { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+    .btn-white {
+      font-family: var(--font-s); font-size: 13px; font-weight: 400;
+      letter-spacing: 0.07em; text-transform: uppercase;
+      background: var(--cream); color: var(--dark);
+      border: none; border-radius: 999px; padding: 16px 32px;
+      cursor: pointer; transition: all 0.25s; text-decoration: none; display: inline-block;
+    }
+    .btn-white:hover { background: var(--white); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
+    .btn-outline-light {
+      font-family: var(--font-s); font-size: 13px; font-weight: 400;
+      letter-spacing: 0.07em; text-transform: uppercase;
+      background: transparent; color: var(--cream);
+      border: 1.5px solid rgba(238,229,220,0.35);
+      border-radius: 999px; padding: 15px 28px;
+      cursor: pointer; transition: all 0.25s; text-decoration: none; display: inline-block;
+    }
+    .btn-outline-light:hover { border-color: var(--cream); background: rgba(238,229,220,0.1); transform: translateY(-2px); }
+
+    /* ── FOOTER ── */
+    .lp-footer {
+      background: var(--dark); padding: 48px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .footer-logo img { height: 28px; opacity: 0.6; }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-links a {
+      font-size: 12px; color: rgba(238,229,220,0.4);
+      text-decoration: none; letter-spacing: 0.06em;
+      text-transform: uppercase; transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--cream); }
+    .footer-copy {
+      font-size: 11px; color: rgba(238,229,220,0.3);
+      letter-spacing: 0.04em;
     }
 
-    .brand-tagline {
-      font-family: var(--font-b);
-      font-size: 20px; font-weight: 400;
-      color: var(--cream);
-      text-align: center; line-height: 1.7; margin-bottom: 20px;
+    /* ── LOGIN MODAL ── */
+    .login-overlay {
+      position: fixed; inset: 0; z-index: 999;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; visibility: hidden;
+      transition: opacity 0.4s, visibility 0.4s;
     }
-    .brand-sub {
-      font-family: var(--font-b);
-      font-size: 19px; color: rgba(238,229,220,0.85);
-      text-align: center; line-height: 1.7; margin-bottom: 48px;
+    .login-overlay.open { opacity: 1; visibility: visible; }
+    .login-backdrop {
+      position: absolute; inset: 0;
+      background: rgba(43,36,34,0.65);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
     }
-
-    /* Gateway — botões lado a lado */
-    .gateway-buttons {
-      display: flex;
-      gap: 16px;
-      width: 100%;
-      margin-bottom: 32px;
+    .login-modal {
+      position: relative; z-index: 2;
+      background: var(--white); border-radius: 20px;
+      padding: 40px 36px; width: 100%; max-width: 420px;
+      transform: translateY(30px) scale(0.97);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 24px 64px rgba(43,36,34,0.2);
     }
-
-    .btn-gateway {
-      flex: 1; display: flex; align-items: center; gap: 14px;
-      background: var(--white); border: 1.5px solid var(--border);
-      border-radius: 12px; padding: 16px 18px; cursor: pointer;
-      text-align: left;
-      transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+    .login-overlay.open .login-modal {
+      transform: translateY(0) scale(1);
     }
-    .btn-gateway:hover {
-      border-color: var(--warm-d);
-      box-shadow: 0 4px 16px rgba(234,83,57,0.15);
-      transform: translateY(-1px);
+    .login-close {
+      position: absolute; top: 16px; right: 16px;
+      background: none; border: none; cursor: pointer;
+      width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--faint); transition: all 0.2s;
     }
-    .btn-gateway-icon {
-      width: 44px; height: 44px; border-radius: 10px;
-      background: rgba(234,83,57,0.1); display: flex;
-      align-items: center; justify-content: center;
-      flex-shrink: 0; color: var(--warm);
+    .login-close:hover { background: rgba(43,36,34,0.06); color: var(--dark); }
+    .login-modal .form-title {
+      font-family: var(--font-h); font-size: 24px; font-weight: 400;
+      text-transform: uppercase; letter-spacing: 0.04em;
+      color: var(--dark); margin-bottom: 4px;
     }
-    .btn-gateway-icon svg { width: 20px; height: 20px; }
-    .btn-gateway-text { flex: 1; display: flex; flex-direction: column; gap: 2px; }
-    .btn-gateway-text strong {
-      font-family: var(--font-h); font-size: 15px; font-weight: 400;
-      color: var(--dark); text-transform: uppercase; letter-spacing: 0.03em;
+    .login-modal .form-subtitle {
+      font-family: var(--font-b); font-size: 14px;
+      color: var(--muted); margin-bottom: 28px; line-height: 1.4;
     }
-    .btn-gateway-text small {
-      font-family: var(--font-b); font-size: 12px; color: var(--muted);
-    }
-
-    .form-footer {
-      font-family: var(--font-b);
-      font-size: 12px; color: rgba(238,229,220,0.55); text-align: center;
-    }
-
-    /* Login form */
-    .login-card {
-      width: 100%;
-      max-width: 400px;
-      background: var(--white);
-      border-radius: 16px;
-      padding: 36px 32px;
-      margin-bottom: 32px;
-    }
-    .login-card .form-title {
-      font-family: var(--font-h);
-      font-size: 22px; font-weight: 400; text-transform: uppercase;
-      letter-spacing: 0.04em; color: var(--dark);
-      margin-bottom: 4px;
-    }
-    .login-card .form-subtitle {
-      font-family: var(--font-b);
-      font-size: 14px; color: var(--muted); margin-bottom: 24px; line-height: 1.4;
-    }
-
     .form-group { margin-bottom: 18px; }
     .form-group label {
-      font-family: var(--font-s);
-      display: block; margin-bottom: 7px; font-size: 12px; font-weight: 400;
+      font-family: var(--font-s); display: block; margin-bottom: 7px;
+      font-size: 11px; font-weight: 400;
       color: var(--dark); text-transform: uppercase; letter-spacing: 0.07em;
     }
     .form-group input {
-      font-family: var(--font-b);
-      width: 100%; padding: 13px 16px;
-      border: 1.5px solid var(--border); border-radius: 8px;
+      font-family: var(--font-b); width: 100%; padding: 13px 16px;
+      border: 1.5px solid var(--border); border-radius: 10px;
       font-size: 15px; color: var(--dark); background: var(--white);
       transition: border-color 0.2s, box-shadow 0.2s;
     }
     .form-group input:focus {
-      outline: none;
-      border-color: var(--warm);
-      box-shadow: 0 0 0 3px rgba(234,83,57,0.12);
+      outline: none; border-color: var(--warm);
+      box-shadow: 0 0 0 3px rgba(234,83,57,0.1);
     }
     .form-group input::placeholder { color: var(--faint); }
-
     .alert {
       font-family: var(--font-b); font-size: 14px;
-      padding: 12px 16px; border-radius: 8px; margin-bottom: 18px; display: none;
+      padding: 12px 16px; border-radius: 10px; margin-bottom: 18px; display: none;
     }
     .alert.show { display: block; animation: shake 0.4s ease; }
-    .alert-error  { background: var(--err-bg); color: var(--err); border: 1px solid var(--err); }
-    .alert-success{ background: var(--ok-bg); color: var(--ok-text); border: 1px solid var(--ok-border); }
-
+    .alert-error { background: var(--err-bg); color: var(--err); border: 1px solid var(--err); }
     .btn-submit {
-      font-family: var(--font-s);
-      width: 100%; padding: 14px; background: var(--warm);
-      color: var(--cream); border: none; border-radius: 999px;
-      font-size: 14px; font-weight: 400; text-transform: uppercase;
-      letter-spacing: 0.07em; cursor: pointer;
-      transition: opacity 0.2s ease, transform 0.15s ease;
-      margin-top: 4px;
+      font-family: var(--font-s); width: 100%; padding: 14px;
+      background: var(--warm); color: var(--cream); border: none;
+      border-radius: 999px; font-size: 13px; font-weight: 400;
+      text-transform: uppercase; letter-spacing: 0.07em;
+      cursor: pointer; transition: all 0.25s; margin-top: 4px;
     }
-    .btn-submit:hover  { opacity: 0.88; transform: translateY(-1px); }
+    .btn-submit:hover { background: var(--warm-dk); transform: translateY(-1px); }
     .btn-submit:active { transform: translateY(0); }
-
     .form-link {
       text-align: center; margin-top: 16px;
       font-family: var(--font-b); font-size: 13px; color: var(--muted);
     }
-    .form-link a {
-      color: var(--warm); text-decoration: none; font-weight: 600;
-    }
+    .form-link a { color: var(--warm); text-decoration: none; font-weight: 600; }
     .form-link a:hover { text-decoration: underline; }
 
-    .btn-back {
+    /* ── MOBILE NAV DRAWER ── */
+    .mobile-drawer {
+      position: fixed; top: 0; right: 0; bottom: 0; z-index: 150;
+      width: 280px; background: var(--white); padding: 80px 32px 32px;
+      transform: translateX(100%);
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: -8px 0 40px rgba(43,36,34,0.15);
+    }
+    .mobile-drawer.open { transform: translateX(0); }
+    .mobile-drawer-backdrop {
+      position: fixed; inset: 0; z-index: 140;
+      background: rgba(43,36,34,0.4);
+      opacity: 0; visibility: hidden;
+      transition: opacity 0.3s, visibility 0.3s;
+    }
+    .mobile-drawer-backdrop.open { opacity: 1; visibility: visible; }
+    .mobile-drawer a {
+      display: block; font-family: var(--font-b); font-size: 15px;
+      font-weight: 500; color: var(--dark); text-decoration: none;
+      padding: 14px 0; border-bottom: 1px solid rgba(43,36,34,0.06);
+      letter-spacing: 0.04em; text-transform: uppercase;
+    }
+    .mobile-drawer a:hover { color: var(--warm); }
+    .mobile-drawer .btn-drawer-cta {
+      display: block; text-align: center; margin-top: 24px;
+      background: var(--warm); color: var(--cream);
+      border: none; border-radius: 999px; padding: 14px;
+      font-family: var(--font-s); font-size: 13px;
+      text-transform: uppercase; letter-spacing: 0.07em;
+      cursor: pointer; transition: background 0.2s;
+      width: 100;
+    }
+    .mobile-drawer .btn-drawer-cta:hover { background: var(--warm-dk); }
+    .drawer-close {
+      position: absolute; top: 20px; right: 20px;
       background: none; border: none; cursor: pointer;
-      display: flex; align-items: center; gap: 6px;
-      color: var(--cream); font-size: 13px;
-      margin-bottom: 20px; padding: 0;
-      font-family: var(--font-b);
+      color: var(--faint); padding: 4px;
     }
 
-    @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      25%  { transform: translateX(-8px); }
-      75%  { transform: translateX(8px); }
+    /* ── RESPONSIVE ── */
+    @media (max-width: 1024px) {
+      .about { grid-template-columns: 1fr; }
+      .about-image { min-height: 400px; }
+      .about-text { padding: 56px 40px; }
+      .culture-grid { grid-template-columns: 1fr; gap: 32px; }
+      .culture-image { order: -1; }
+      .stats-ribbon { gap: 40px; flex-wrap: wrap; padding: 48px 32px; }
     }
 
-    @media (max-width: 720px) {
-      .page { padding: 32px 20px; }
-      .gateway-buttons { flex-direction: column; }
-      .brand-tagline { font-size: 15px; }
+    @media (max-width: 768px) {
+      .lp-header { padding: 0 20px; height: 64px; }
+      .header-nav { display: none; }
+      .hamburger { display: block; }
+      .hero-content { padding: 100px 24px 70px; }
+      .hero-stats { gap: 28px; flex-wrap: wrap; }
+      .hero-stat-val { font-size: 32px; }
+      .about-text { padding: 48px 24px; }
+      .values-section { padding: 64px 24px; }
+      .values-grid { grid-template-columns: 1fr 1fr; gap: 14px; }
+      .lifestyle-content { padding: 60px 24px; }
+      .culture { padding: 64px 24px; }
+      .cta-final { padding: 64px 24px; }
+      .stats-ribbon { gap: 24px; padding: 40px 24px; }
+      .stat-divider { display: none; }
+      .lp-footer {
+        flex-direction: column; gap: 20px;
+        text-align: center; padding: 40px 24px;
+      }
+      .footer-links { flex-wrap: wrap; justify-content: center; }
+      .scroll-indicator { display: none; }
+      .login-modal { margin: 16px; padding: 32px 24px; }
+    }
+
+    @media (max-width: 480px) {
+      .values-grid { grid-template-columns: 1fr; }
+      .hero-btns { flex-direction: column; width: 100%; }
+      .hero-btns .btn-primary,
+      .hero-btns .btn-outline { width: 100%; text-align: center; }
+      .cta-final-btns { flex-direction: column; width: 100%; max-width: 320px; margin: 0 auto; }
+      .cta-final-btns .btn-white,
+      .cta-final-btns .btn-outline-light { width: 100%; text-align: center; }
     }
   </style>
 </head>
 <body>
 
-  <div class="page">
+<!-- ═══════════ HEADER ═══════════ -->
+<header class="lp-header" id="lpHeader">
+  <a href="#hero" class="logo-link">
+    <img src="Imagens%20para%20Usar/logo%20branco%20sem%20fundo.png" alt="Renova Be" class="logo-img light"/>
+    <img src="Imagens%20para%20Usar/logo%20escuro%20sem%20fundo.png" alt="Renova Be" class="logo-img dark"/>
+  </a>
+  <nav class="header-nav">
+    <a href="#sobre">Sobre</a>
+    <a href="#valores">Valores</a>
+    <a href="#cultura">Cultura</a>
+    <a href="trabalhe-conosco.html">Vagas</a>
+  </nav>
+  <button class="btn-header-cta" onclick="openLogin()">Sou Colaborador</button>
+  <button class="hamburger" id="hamburgerBtn" onclick="toggleDrawer()">
+    <span></span><span></span><span></span>
+  </button>
+</header>
 
-    <!-- ── GATEWAY ── -->
-    <div id="gatewayView" style="display:flex;flex-direction:column;align-items:center;width:100%">
-      <img
-        src="Imagens%20para%20Usar/logo.png"
-        alt="Renova Be"
-        class="brand-logo"
-        onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
-      />
-      <span class="brand-logo-fallback">RENOVA BE</span>
+<!-- Mobile Drawer -->
+<div class="mobile-drawer-backdrop" id="drawerBackdrop" onclick="toggleDrawer()"></div>
+<div class="mobile-drawer" id="mobileDrawer">
+  <button class="drawer-close" onclick="toggleDrawer()">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+  <a href="#sobre" onclick="toggleDrawer()">Sobre</a>
+  <a href="#valores" onclick="toggleDrawer()">Valores</a>
+  <a href="#cultura" onclick="toggleDrawer()">Cultura</a>
+  <a href="trabalhe-conosco.html">Vagas Abertas</a>
+  <button class="btn-drawer-cta" onclick="toggleDrawer();openLogin()">Sou Colaborador</button>
+</div>
 
-      <p class="brand-tagline">A Renova Be é uma empresa do Grupo Vitabe, uma comunidade apaixonada, impulsionada pela inovação e dedicada ao bem-estar dos nossos clientes.</p>
-      <p class="brand-sub">Fundada com a visão de oferecer uma abordagem revolucionária para a beleza e o autocuidado, combinamos tecnologia de ponta com ingredientes de alta qualidade para criar produtos que não apenas transformam a sua aparência, mas também elevam a sua autoconfiança.</p>
-
-      <div class="gateway-buttons">
-        <button class="btn-gateway" onclick="showLoginView()">
-          <span class="btn-gateway-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          </span>
-          <span class="btn-gateway-text">
-            <strong>Sou Colaborador</strong>
-          </span>
-        </button>
-
-        <button class="btn-gateway" onclick="window.location.href='trabalhe-conosco.html'">
-          <span class="btn-gateway-icon" style="background:rgba(195,215,44,0.15)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
-          </span>
-          <span class="btn-gateway-text">
-            <strong>Trabalhe Conosco</strong>
-          </span>
-        </button>
-      </div>
-
-      <p class="form-footer">© 2026 Renova Be — Todos os direitos reservados</p>
-    </div>
-
-    <!-- ── LOGIN FORM ── -->
-    <div id="loginView" style="display:none;width:100%;display:none;flex-direction:column;align-items:center">
-      <button class="btn-back" onclick="showGatewayView()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="15 18 9 12 15 6"/></svg>
-        Voltar
-      </button>
-
-      <div class="login-card">
-        <h1 class="form-title">Portal do<br/>Colaborador</h1>
-        <p class="form-subtitle">Faça login para acessar seu espaço.</p>
-
-        <div id="alertMsg" class="alert alert-error" role="alert"></div>
-
-        <form id="loginForm" novalidate action="javascript:void(0)" method="POST">
-          <div class="form-group">
-            <label for="email">E-mail corporativo</label>
-            <input
-              type="email" id="email" name="email"
-              placeholder="seunome@vitabe.com.br"
-              required autocomplete="email"
-            />
-          </div>
-          <div class="form-group">
-            <label for="senha">Senha</label>
-            <input
-              type="password" id="senha" name="senha"
-              placeholder="Sua senha"
-              required autocomplete="current-password"
-            />
-          </div>
-          <button type="submit" class="btn-submit">Entrar</button>
-        </form>
-
-        <p class="form-link">
-          Primeiro acesso? <a href="cadastro.html">Criar conta</a>
-        </p>
-        <p class="form-link" style="margin-top:10px">
-          <a href="esqueci-senha.html">Esqueci minha senha</a>
-        </p>
-      </div>
-
-      <p class="form-footer">© 2026 Renova Be — Todos os direitos reservados</p>
-    </div>
-
+<!-- ═══════════ HERO ═══════════ -->
+<section class="hero" id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-gradient"></div>
+  <div class="hero-circles">
+    <div class="hero-circle-3"></div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="db.js"></script>
+  <div class="hero-content">
+    <div class="hero-eyebrow reveal">
+      <span class="hero-dot"></span>
+      <span>Renova Be &mdash; Grupo Vitabe</span>
+    </div>
+    <h1 class="hero-title reveal stagger-1">Viva o prazer<br/>de ser <em>você</em></h1>
+    <p class="hero-sub reveal stagger-2">Uma comunidade apaixonada, impulsionada pela inovação e dedicada ao bem-estar. Combinamos tecnologia de ponta com ingredientes de alta qualidade para transformar a sua aparência e elevar a sua autoconfiança.</p>
+    <div class="hero-btns reveal stagger-3">
+      <button class="btn-primary" onclick="openLogin()">Sou Colaborador</button>
+      <a href="trabalhe-conosco.html" class="btn-outline">Trabalhe Conosco</a>
+    </div>
+    <div class="hero-stats reveal stagger-4">
+      <div class="hero-stat">
+        <div class="hero-stat-val">7<span style="color:var(--green)">+</span></div>
+        <div class="hero-stat-lbl">Anos no mercado</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-val">E-commerce</div>
+        <div class="hero-stat-lbl">Forte presena digital</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-val">Bem-estar</div>
+        <div class="hero-stat-lbl">Saude, beleza & autocuidado</div>
+      </div>
+    </div>
+  </div>
 
-  <script>
-    var form     = document.getElementById('loginForm');
-    var alertMsg = document.getElementById('alertMsg');
+  <div class="scroll-indicator">
+    <span>Scroll</span>
+    <svg width="16" height="24" viewBox="0 0 16 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="1" width="10" height="16" rx="5"/><line x1="8" y1="5" x2="8" y2="9"/><polyline points="4 18 8 22 12 18"/></svg>
+  </div>
+</section>
 
-    function mostrarErro(msg) {
-      alertMsg.textContent = msg;
-      alertMsg.className = 'alert alert-error show';
+<!-- ═══════════ ABOUT ═══════════ -->
+<section class="about" id="sobre">
+  <div class="about-image reveal-left">
+    <img src="img-lp/lifestyle-1.png" alt="Renova Be — Seu ritmo e o ritmo certo" loading="lazy"/>
+    <div class="about-image-overlay"></div>
+  </div>
+  <div class="about-text">
+    <span class="section-eyebrow reveal">Nossa historia</span>
+    <h2 class="section-title reveal stagger-1">Mais do que produtos,<br/>impacto positivo</h2>
+    <p class="reveal stagger-2">Ha 7 anos no mercado, a marca vem construindo uma trajetoria solida, baseada na proximidade com o cliente, na inovacao e na entrega de produtos que realmente fazem sentido.</p>
+    <p class="reveal stagger-3">Com forte presenca no e-commerce, a Renova Be se destaca pelo <strong>atendimento proximo e humanizado</strong>, proporcionando uma experiencia acolhedora e personalizada.</p>
+    <p class="reveal stagger-4">Mais do que oferecer produtos, a Renova Be busca incentivar habitos de autocuidado e impactar positivamente a vida das pessoas — e internamente, <strong>valoriza o desenvolvimento dos colaboradores</strong>.</p>
+  </div>
+</section>
+
+<!-- ═══════════ STATS RIBBON ═══════════ -->
+<section class="stats-ribbon">
+  <div class="stat-item reveal">
+    <div class="stat-number">7<span>+</span></div>
+    <div class="stat-label">Anos de mercado</div>
+  </div>
+  <div class="stat-divider"></div>
+  <div class="stat-item reveal stagger-1">
+    <div class="stat-number" style="font-size:36px">Grupo<span> Vitabe</span></div>
+    <div class="stat-label">Ecossistema de marcas</div>
+  </div>
+  <div class="stat-divider"></div>
+  <div class="stat-item reveal stagger-2">
+    <div class="stat-number" style="font-size:36px">100<span>%</span></div>
+    <div class="stat-label">Digital & inovacao</div>
+  </div>
+  <div class="stat-divider"></div>
+  <div class="stat-item reveal stagger-3">
+    <div class="stat-number" style="font-size:36px">Autocuidado</div>
+    <div class="stat-label">Nosso proposito</div>
+  </div>
+</section>
+
+<!-- ═══════════ VALUES ═══════════ -->
+<section class="values-section" id="valores">
+  <div class="values-header">
+    <span class="section-eyebrow reveal">O que nos move</span>
+    <h2 class="section-title reveal stagger-1">Nossos Valores</h2>
+    <p class="reveal stagger-2">Cada decisao que tomamos e guiada por principios que refletem quem somos e o impacto que queremos gerar.</p>
+  </div>
+  <div class="values-grid">
+    <div class="value-card reveal stagger-1">
+      <div class="value-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#EA5339" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <h3>Inovacao constante</h3>
+      <p>Buscamos sempre evoluir com criatividade, desafiando o convencional para entregar solucoes que surpreendem.</p>
+    </div>
+    <div class="value-card reveal stagger-2">
+      <div class="value-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C3D72C" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      </div>
+      <h3>Qualidade e tecnologia</h3>
+      <p>Rigor tecnico e atencao ao detalhe em cada produto, processo e interacao com nossos clientes.</p>
+    </div>
+    <div class="value-card reveal stagger-3">
+      <div class="value-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6EAABF" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <h3>Espirito jovem</h3>
+      <p>Uma cultura vibrante, dinamica e aberta, onde a energia e a colaboracao guiam o dia a dia.</p>
+    </div>
+    <div class="value-card reveal stagger-4">
+      <div class="value-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F1BF33" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      </div>
+      <h3>Autenticidade</h3>
+      <p>Genuinos no que fazemos e em como nos relacionamos. Transparencia e verdade em cada passo.</p>
+    </div>
+    <div class="value-card reveal stagger-5">
+      <div class="value-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#EA5339" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      </div>
+      <h3>Cuidado global</h3>
+      <p>Comprometidos com impacto positivo no mundo, nas pessoas e no meio em que atuamos.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ LIFESTYLE ═══════════ -->
+<section class="lifestyle" id="cultura">
+  <div class="lifestyle-bg"></div>
+  <div class="lifestyle-overlay"></div>
+  <div class="lifestyle-content">
+    <h2 class="reveal">Cuidar do seu futuro<br/>comeca agora</h2>
+    <p class="reveal stagger-1">A Renova Be e uma marca voltada para saude, beleza e bem-estar, com foco no desenvolvimento de produtos que incentivam o autocuidado e a qualidade de vida.</p>
+  </div>
+</section>
+
+<!-- ═══════════ CULTURE ═══════════ -->
+<section class="culture">
+  <div class="culture-grid">
+    <div class="culture-text">
+      <span class="section-eyebrow reveal">Nossa cultura</span>
+      <h2 class="section-title reveal stagger-1">Pessoas no centro<br/>de tudo</h2>
+      <p class="reveal stagger-2">Fundada com a visao de oferecer uma abordagem revolucionaria para a beleza e o autocuidado, combinamos tecnologia de ponta com ingredientes de alta qualidade para criar produtos que nao apenas transformam a sua aparencia, mas tambem elevam a sua autoconfianca.</p>
+      <div class="highlight-bar reveal stagger-3">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#EA5339" stroke-width="1.5" style="flex-shrink:0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <p>Internamente, valorizamos o desenvolvimento dos colaboradores e construimos juntos um ambiente de crescimento continuo.</p>
+      </div>
+      <p class="reveal stagger-4">Se voce se identificou com nossa cultura e quer construir algo significativo, estamos esperando por voce.</p>
+    </div>
+    <div class="culture-image reveal-right">
+      <img src="img-lp/lifestyle-1.png" alt="Cultura Renova Be" loading="lazy"/>
+      <div class="culture-badge">Seu ritmo e o ritmo certo</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ CTA FINAL ═══════════ -->
+<section class="cta-final">
+  <div class="cta-final-circles"></div>
+  <div class="cta-final-inner">
+    <span class="section-eyebrow reveal" style="color:rgba(238,229,220,0.6)">Faca parte</span>
+    <h2 class="reveal stagger-1">Faca parte<br/>dessa historia</h2>
+    <p class="reveal stagger-2">Conecte-se ao portal do colaborador ou explore nossas oportunidades de carreira.</p>
+    <div class="cta-final-btns reveal stagger-3">
+      <button class="btn-white" onclick="openLogin()">Sou Colaborador</button>
+      <a href="trabalhe-conosco.html" class="btn-outline-light">Trabalhe Conosco</a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ FOOTER ═══════════ -->
+<footer class="lp-footer">
+  <div class="footer-logo">
+    <img src="Imagens%20para%20Usar/logo%20branco%20sem%20fundo.png" alt="Renova Be"/>
+  </div>
+  <div class="footer-links">
+    <a href="#sobre">Sobre</a>
+    <a href="#valores">Valores</a>
+    <a href="trabalhe-conosco.html">Vagas</a>
+  </div>
+  <span class="footer-copy">&copy; 2026 Renova Be &mdash; Todos os direitos reservados</span>
+</footer>
+
+<!-- ═══════════ LOGIN MODAL ═══════════ -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-backdrop" onclick="closeLogin()"></div>
+  <div class="login-modal">
+    <button class="login-close" onclick="closeLogin()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <h1 class="form-title">Portal do<br/>Colaborador</h1>
+    <p class="form-subtitle">Faca login para acessar seu espaco.</p>
+    <div id="alertMsg" class="alert alert-error" role="alert"></div>
+    <form id="loginForm" novalidate action="javascript:void(0)" method="POST">
+      <div class="form-group">
+        <label for="email">E-mail corporativo</label>
+        <input type="email" id="email" name="email" placeholder="seunome@vitabe.com.br" required autocomplete="email"/>
+      </div>
+      <div class="form-group">
+        <label for="senha">Senha</label>
+        <input type="password" id="senha" name="senha" placeholder="Sua senha" required autocomplete="current-password"/>
+      </div>
+      <button type="submit" class="btn-submit">Entrar</button>
+    </form>
+    <p class="form-link">Primeiro acesso? <a href="cadastro.html">Criar conta</a></p>
+    <p class="form-link" style="margin-top:10px"><a href="esqueci-senha.html">Esqueci minha senha</a></p>
+  </div>
+</div>
+
+<!-- ═══════════ SCRIPTS ═══════════ -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="db.js"></script>
+<script>
+(function() {
+  'use strict';
+
+  /* ── Header scroll ── */
+  var header = document.getElementById('lpHeader');
+  var lastScroll = 0;
+  window.addEventListener('scroll', function() {
+    if (window.scrollY > 60) {
+      header.classList.add('scrolled');
+    } else {
+      header.classList.remove('scrolled');
+    }
+    lastScroll = window.scrollY;
+  }, { passive: true });
+
+  /* ── Scroll reveal (IntersectionObserver) ── */
+  var revealEls = document.querySelectorAll('.reveal, .reveal-left, .reveal-right');
+  if ('IntersectionObserver' in window) {
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('active');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+    revealEls.forEach(function(el) { observer.observe(el); });
+  } else {
+    revealEls.forEach(function(el) { el.classList.add('active'); });
+  }
+
+  /* ── Login modal ── */
+  window.openLogin = function() {
+    document.getElementById('loginOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    setTimeout(function() { document.getElementById('email').focus(); }, 400);
+  };
+  window.closeLogin = function() {
+    document.getElementById('loginOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+  };
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') window.closeLogin();
+  });
+
+  /* ── Mobile drawer ── */
+  window.toggleDrawer = function() {
+    document.getElementById('mobileDrawer').classList.toggle('open');
+    document.getElementById('drawerBackdrop').classList.toggle('open');
+  };
+
+  /* ── Login form ── */
+  var form = document.getElementById('loginForm');
+  var alertMsg = document.getElementById('alertMsg');
+
+  function mostrarErro(msg) {
+    alertMsg.textContent = msg;
+    alertMsg.className = 'alert alert-error show';
+  }
+
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    alertMsg.className = 'alert alert-error';
+
+    var email = document.getElementById('email').value.trim();
+    var senha = document.getElementById('senha').value;
+
+    if (!email || !senha) {
+      mostrarErro('Preencha e-mail e senha.');
+      return;
     }
 
-    form.addEventListener('submit', async function(e) {
-      e.preventDefault();
-      alertMsg.className = 'alert alert-error';
+    var btn = form.querySelector('.btn-submit');
+    btn.disabled = true;
+    btn.textContent = 'Entrando\u2026';
 
-      var email = document.getElementById('email').value.trim();
-      var senha = document.getElementById('senha').value;
+    var resultado = await dbLogin(email, senha);
 
-      if (!email || !senha) {
-        mostrarErro('Preencha e-mail e senha.');
-        return;
-      }
+    if (resultado === 'CREDENCIAIS_INVALIDAS') {
+      mostrarErro('E-mail ou senha incorretos. Verifique e tente novamente.');
+      btn.disabled = false; btn.textContent = 'Entrar';
+      document.getElementById('senha').value = '';
+      document.getElementById('senha').focus();
+      return;
+    }
+    if (resultado === 'USUARIO_INATIVO') {
+      mostrarErro('Sua conta esta inativa. Entre em contato com o G&G.');
+      btn.disabled = false; btn.textContent = 'Entrar';
+      return;
+    }
+    if (typeof resultado === 'string') {
+      mostrarErro('Erro ao fazer login. Tente novamente.');
+      btn.disabled = false; btn.textContent = 'Entrar';
+      return;
+    }
 
-      var btn = form.querySelector('.btn-submit');
-      btn.disabled = true;
-      btn.textContent = 'Entrando…';
+    window.location.href = 'index.html';
+  });
 
-      var resultado = await dbLogin(email, senha);
-
-      if (resultado === 'CREDENCIAIS_INVALIDAS') {
-        mostrarErro('E-mail ou senha incorretos. Verifique e tente novamente.');
-        btn.disabled = false;
-        btn.textContent = 'Entrar';
-        document.getElementById('senha').value = '';
-        document.getElementById('senha').focus();
-        return;
-      }
-      if (resultado === 'USUARIO_INATIVO') {
-        mostrarErro('Sua conta está inativa. Entre em contato com o G&G.');
-        btn.disabled = false;
-        btn.textContent = 'Entrar';
-        return;
-      }
-      if (typeof resultado === 'string') {
-        mostrarErro('Erro ao fazer login. Tente novamente.');
-        btn.disabled = false;
-        btn.textContent = 'Entrar';
-        return;
-      }
-
+  /* ── Auto-redirect if logged in ── */
+  (async function() {
+    await dbInit();
+    if (dbGetSessao()) {
       window.location.href = 'index.html';
-    });
-
-    function showLoginView() {
-      document.getElementById('gatewayView').style.display = 'none';
-      var lv = document.getElementById('loginView');
-      lv.style.display = 'flex';
-      document.getElementById('email').focus();
     }
+  })();
 
-    function showGatewayView() {
-      document.getElementById('loginView').style.display = 'none';
-      document.getElementById('gatewayView').style.display = 'flex';
-    }
-
-    (async function() {
-      await dbInit();
-      if (dbGetSessao()) {
-        window.location.href = 'index.html';
+  /* ── Smooth scroll for anchor links ── */
+  document.querySelectorAll('a[href^="#"]').forEach(function(a) {
+    a.addEventListener('click', function(e) {
+      var target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
-    })();
-  </script>
+    });
+  });
+
+})();
+</script>
 </body>
 </html>
