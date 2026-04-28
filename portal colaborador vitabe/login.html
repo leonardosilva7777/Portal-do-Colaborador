@@ -268,7 +268,7 @@
     }
     .lifestyle-bg {
       position: absolute; inset: 0;
-      background: url('img-lp/lifestyle-2.png') center 20% / cover no-repeat;
+      background: url('img-lp/lifestyle-2.png') center 30% / cover no-repeat;
     }
     .lifestyle-overlay {
       position: absolute; inset: 0;
@@ -377,10 +377,10 @@
     /* ── FOOTER ── */
     .lp-footer {
       background: var(--dark); padding: 44px 48px;
-      display: flex; align-items: center; justify-content: space-between;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 16px; text-align: center;
     }
-    .footer-logo img { height: 26px; opacity: 0.5; }
-    .footer-links { display: flex; gap: 24px; }
+    .footer-links { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; }
     .footer-links a {
       font-size: 11px; color: rgba(238,229,220,0.35);
       text-decoration: none; letter-spacing: 0.06em;
@@ -738,9 +738,6 @@
 
 <!-- ═══════════ FOOTER ═══════════ -->
 <footer class="lp-footer">
-  <div class="footer-logo">
-    <img src="Imagens%20para%20Usar/logo%20branco%20sem%20fundo.png" alt="Renova Be"/>
-  </div>
   <div class="footer-links">
     <a href="#sobre">Sobre</a>
     <a href="#valores">Valores</a>
